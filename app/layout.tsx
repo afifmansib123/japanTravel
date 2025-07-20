@@ -1,18 +1,16 @@
-import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
+import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { CartProvider } from '@/contexts/CartContext';
-import { Toaster } from '@/components/ui/sonner';
+import { Toaster } from 'sonner';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Wanderlust Adventures - Discover the World',
-  description: 'Premium tour packages and travel experiences around the globe',
+  title: 'Your App Name',
+  description: 'Your app description',
 };
 
 export default function RootLayout({
@@ -26,14 +24,8 @@ export default function RootLayout({
         <LanguageProvider>
           <AuthProvider>
             <CartProvider>
-              <div className="flex flex-col min-h-screen">
-                <Navbar />
-                <main className="flex-1">
-                  {children}
-                </main>
-                <Footer />
-              </div>
-              <Toaster />
+              {children}
+              <Toaster position="top-right" />
             </CartProvider>
           </AuthProvider>
         </LanguageProvider>

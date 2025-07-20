@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus, Edit, Trash2, Package, Users, DollarSign, TrendingUp } from 'lucide-react';
+import { Plus, Edit, Trash2, Package, Users, DollarSign, TrendingUp, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useAuth } from '@/contexts/AuthContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import { toast } from 'sonner';
 
 interface Tour {
@@ -45,14 +46,15 @@ interface Category {
   description: string;
 }
 
-export default function AdminPage() {
-  const { user } = useAuth();
+function AdminDashboard() {
+  const { user, signOut } = useAuth();
   const router = useRouter();
   const [tours, setTours] = useState<Tour[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [isAddingTour, setIsAddingTour] = useState(false);
   const [isAddingCategory, setIsAddingCategory] = useState(false);
   const [editingTour, setEditingTour] = useState<Tour | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Form states
   const [tourForm, setTourForm] = useState({
@@ -79,49 +81,64 @@ export default function AdminPage() {
   ];
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') {
-      router.push('/');
-      return;
-    }
     fetchData();
-  }, [user, router]);
+  }, []);
 
   const fetchData = async () => {
-    // Demo data
-    setCategories([
-      { id: 1, name: 'Adventure', description: 'Thrilling outdoor experiences' },
-      { id: 2, name: 'Cultural', description: 'Immersive cultural experiences' },
-      { id: 3, name: 'Beach', description: 'Relaxing beach destinations' },
-      { id: 4, name: 'Mountain', description: 'Scenic mountain adventures' },
-      { id: 5, name: 'City', description: 'Urban exploration tours' }
-    ]);
+    setIsLoading(true);
+    try {
+      // Demo data - In real app, this would be API calls
+      setCategories([
+        { id: 1, name: 'Adventure', description: 'Thrilling outdoor experiences' },
+        { id: 2, name: 'Cultural', description: 'Immersive cultural experiences' },
+        { id: 3, name: 'Beach', description: 'Relaxing beach destinations' },
+        { id: 4, name: 'Mountain', description: 'Scenic mountain adventures' },
+        { id: 5, name: 'City', description: 'Urban exploration tours' }
+      ]);
 
-    setTours([
-      {
-        id: 1,
-        name: 'Tropical Paradise Escape',
-        description: 'Luxury overwater bungalows and pristine beaches',
-        price: 2499,
-        duration: '7 Days',
-        location: 'Maldives',
-        category: 'Beach',
-        rating: 4.9,
-        image: 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=400',
-        features: ['All-inclusive', 'Overwater villa', 'Spa included', 'Snorkeling']
-      },
-      {
-        id: 2,
-        name: 'Himalayan Adventure Trek',
-        description: 'Epic mountain trekking with experienced guides',
-        price: 1899,
-        duration: '14 Days',
-        location: 'Nepal Himalayas',
-        category: 'Adventure',
-        rating: 4.8,
-        image: 'https://images.pexels.com/photos/933054/pexels-photo-933054.jpeg?auto=compress&cs=tinysrgb&w=400',
-        features: ['Expert guides', 'Tea house stays', 'Permits included', 'Equipment rental']
-      }
-    ]);
+      setTours([
+        {
+          id: 1,
+          name: 'Tropical Paradise Escape',
+          description: 'Luxury overwater bungalows and pristine beaches',
+          price: 2499,
+          duration: '7 Days',
+          location: 'Maldives',
+          category: 'Beach',
+          rating: 4.9,
+          image: 'https://images.pexels.com/photos/1287460/pexels-photo-1287460.jpeg?auto=compress&cs=tinysrgb&w=400',
+          features: ['All-inclusive', 'Overwater villa', 'Spa included', 'Snorkeling']
+        },
+        {
+          id: 2,
+          name: 'Himalayan Adventure Trek',
+          description: 'Epic mountain trekking with experienced guides',
+          price: 1899,
+          duration: '14 Days',
+          location: 'Nepal Himalayas',
+          category: 'Adventure',
+          rating: 4.8,
+          image: 'https://images.pexels.com/photos/933054/pexels-photo-933054.jpeg?auto=compress&cs=tinysrgb&w=400',
+          features: ['Expert guides', 'Tea house stays', 'Permits included', 'Equipment rental']
+        }
+      ]);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      toast.error('Failed to load data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success('Signed out successfully');
+      router.push('/');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      toast.error('Failed to sign out');
+    }
   };
 
   const handleAddTour = () => {
@@ -230,17 +247,64 @@ export default function AdminPage() {
     toast.success('Category deleted successfully!');
   };
 
-  if (!user || user.role !== 'admin') {
-    return null;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-600">Manage your tours and categories</p>
+        {/* Header with user info and sign out */}
+        <div className="mb-8 flex justify-between items-start">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+            <p className="text-gray-600">Manage your tours and categories</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div className="text-right">
+              <p className="text-sm text-gray-600">Welcome back,</p>
+              <p className="font-semibold">{user?.name}</p>
+              <Badge variant="secondary" className="text-xs">
+                {user?.role}
+              </Badge>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={handleSignOut}
+              className="flex items-center space-x-2"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sign Out</span>
+            </Button>
+          </div>
         </div>
+
+        {/* Admin Info Card */}
+        <Card className="mb-8 bg-blue-50 border-blue-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-blue-900">Admin Access</h2>
+                <p className="text-blue-700">You have full administrative privileges</p>
+                <div className="mt-2 text-sm text-blue-600">
+                  <p>User ID: {user?.id}</p>
+                  <p>Email: {user?.email}</p>
+                  <p>Email Verified: {user?.emailVerified ? 'Yes' : 'No'}</p>
+                </div>
+              </div>
+              <div className="text-blue-600">
+                <Users className="h-12 w-12" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Stats */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
@@ -265,7 +329,7 @@ export default function AdminPage() {
         {/* Categories Section */}
         <Card className="mb-8">
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Categories</CardTitle>
+            <CardTitle>Categories Management</CardTitle>
             <Dialog open={isAddingCategory} onOpenChange={setIsAddingCategory}>
               <DialogTrigger asChild>
                 <Button>
@@ -306,14 +370,14 @@ export default function AdminPage() {
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               {categories.map((category) => (
-                <div key={category.id} className="p-4 border rounded-lg">
+                <div key={category.id} className="p-4 border rounded-lg bg-white">
                   <div className="flex justify-between items-start mb-2">
                     <h3 className="font-semibold">{category.name}</h3>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteCategory(category.id)}
-                      className="text-red-600 hover:text-red-700"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -328,7 +392,7 @@ export default function AdminPage() {
         {/* Tours Section */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Tours</CardTitle>
+            <CardTitle>Tours Management</CardTitle>
             <Dialog open={isAddingTour} onOpenChange={setIsAddingTour}>
               <DialogTrigger asChild>
                 <Button>
@@ -342,7 +406,7 @@ export default function AdminPage() {
                 </DialogHeader>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="tourName">Name</Label>
+                    <Label htmlFor="tourName">Name *</Label>
                     <Input
                       id="tourName"
                       value={tourForm.name}
@@ -351,7 +415,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="tourPrice">Price</Label>
+                    <Label htmlFor="tourPrice">Price *</Label>
                     <Input
                       id="tourPrice"
                       type="number"
@@ -379,7 +443,7 @@ export default function AdminPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="tourCategory">Category</Label>
+                    <Label htmlFor="tourCategory">Category *</Label>
                     <Select value={tourForm.category} onValueChange={(value) => setTourForm({...tourForm, category: value})}>
                       <SelectTrigger>
                         <SelectValue placeholder="Select category" />
@@ -432,7 +496,7 @@ export default function AdminPage() {
           <CardContent>
             <div className="space-y-4">
               {tours.map((tour) => (
-                <div key={tour.id} className="p-4 border rounded-lg">
+                <div key={tour.id} className="p-4 border rounded-lg bg-white">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <img
@@ -547,7 +611,7 @@ export default function AdminPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => handleDeleteTour(tour.id)}
-                        className="text-red-600 hover:text-red-700"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -560,5 +624,14 @@ export default function AdminPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+// Main component with role protection
+export default function AdminPage() {
+  return (
+    <ProtectedRoute allowedRoles={['admin']}>
+      <AdminDashboard />
+    </ProtectedRoute>
   );
 }

@@ -27,8 +27,20 @@ export default function SignInPage() {
       await signIn(email, password);
       toast.success('Signed in successfully!');
       router.push('/');
-    } catch (error) {
-      toast.error('Invalid email or password');
+    } catch (error: any) {
+      console.error('Sign in error:', error);
+      
+      // Handle specific error cases
+      if (error.message.includes('UserNotConfirmedException')) {
+        toast.error('Please verify your email first');
+        router.push(`/auth/confirm?email=${encodeURIComponent(email)}`);
+      } else if (error.message.includes('NotAuthorizedException')) {
+        toast.error('Invalid email or password');
+      } else if (error.message.includes('UserNotFoundException')) {
+        toast.error('No account found with this email');
+      } else {
+        toast.error(error.message || 'Failed to sign in');
+      }
     } finally {
       setLoading(false);
     }
@@ -52,7 +64,7 @@ export default function SignInPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder={t('auth.signin.email')}
+                  placeholder="Enter your email"
                 />
               </div>
               
@@ -64,7 +76,7 @@ export default function SignInPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder={t('auth.signin.password')}
+                  placeholder="Enter your password"
                 />
               </div>
 
@@ -82,11 +94,12 @@ export default function SignInPage() {
               </p>
             </div>
 
+            {/* Demo credentials info - you can remove this later */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium mb-2">{t('auth.signin.demo')}</p>
+              <p className="text-sm text-blue-800 font-medium mb-2">Demo Account</p>
               <div className="text-xs text-blue-700 space-y-1">
-                <p><strong>Admin:</strong> admin@wanderlust.com / admin123</p>
-                <p><strong>Customer:</strong> any-email@example.com / demo123</p>
+                <p>Create a new account to test the authentication flow</p>
+                <p>Verification codes will be sent to your email</p>
               </div>
             </div>
           </CardContent>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
@@ -16,6 +17,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'user' | 'admin'>('user');
   const [loading, setLoading] = useState(false);
   const { signUp } = useAuth();
   const router = useRouter();
@@ -29,19 +31,37 @@ export default function SignUpPage() {
       return;
     }
 
-    if (password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
+
+    // Basic password strength validation
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    
+    if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
+      toast.error('Password must contain uppercase, lowercase, and numbers');
       return;
     }
 
     setLoading(true);
 
     try {
-      await signUp(email, password, name);
-      toast.success('Account created successfully!');
-      router.push('/');
-    } catch (error) {
-      toast.error('Failed to create account');
+      const result = await signUp(email, password, name, role);
+      
+      if (result.needsConfirmation) {
+        toast.success('Account created! Please check your email for verification code.');
+        // Pass both email and username to confirmation page
+        router.push(`/auth/confirm?email=${encodeURIComponent(email)}&username=${encodeURIComponent(result.username)}`);
+      } else {
+        toast.success('Account created successfully!');
+        router.push('/');
+      }
+    } catch (error: any) {
+      console.error('Sign up error:', error);
+      toast.error(error.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -65,7 +85,7 @@ export default function SignUpPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  placeholder={t('auth.signup.name')}
+                  placeholder="Enter your full name"
                 />
               </div>
 
@@ -77,8 +97,22 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder={t('auth.signin.email')}
+                  placeholder="Enter your email"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="role">Account Type</Label>
+                <RadioGroup value={role} onValueChange={(value) => setRole(value as 'user' | 'admin')}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="user" id="user" />
+                    <Label htmlFor="user">User</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="admin" id="admin" />
+                    <Label htmlFor="admin">Admin</Label>
+                  </div>
+                </RadioGroup>
               </div>
               
               <div>
@@ -89,9 +123,12 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder={t('auth.signin.password')}
-                  minLength={6}
+                  placeholder="Create a strong password"
+                  minLength={8}
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Must be 8+ characters with uppercase, lowercase, and numbers
+                </p>
               </div>
 
               <div>
@@ -102,7 +139,7 @@ export default function SignUpPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  placeholder={t('auth.signup.confirmPassword')}
+                  placeholder="Confirm your password"
                 />
               </div>
 
