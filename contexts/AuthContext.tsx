@@ -1,3 +1,4 @@
+// contexts/AuthContext.tsx - Updated to create users in database
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
@@ -11,14 +12,17 @@ import {
   resendSignUpCode as amplifyResendSignUpCode
 } from 'aws-amplify/auth';
 import { Hub } from 'aws-amplify/utils';
-import '../lib/amplify-config'; // Import the config
+import '../lib/amplify-config';
 
 interface User {
-  id: string;
+  id: string;          // Cognito ID
   email: string;
   name?: string;
   role: 'user' | 'admin';
   emailVerified?: boolean;
+  _id?: string;        // MongoDB ID
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 interface AuthContextType {
@@ -37,12 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check authentication status on mount
   useEffect(() => {
     checkAuthState();
   }, []);
 
-  // Listen for auth events
   useEffect(() => {
     const unsubscribe = Hub.listen('auth', ({ payload }) => {
       switch (payload.event) {
@@ -61,6 +63,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, []);
 
+  // Function to create user in database
+  const createUserInDatabase = async (cognitoUser: any, idToken: any) => {
+    try {
+      const userData = {
+        cognitoId: cognitoUser.userId,
+        email: idToken?.payload.email || '',
+        name: idToken?.payload.name || '',
+        role: (idToken?.payload['custom:role'] || 'user')
+      };
+
+      console.log('Creating user in database:', userData);
+
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (response.ok) {
+        const dbUser = await response.json();
+        console.log('User created in database:', dbUser);
+        return dbUser;
+      } else {
+        const error = await response.json();
+        console.error('Failed to create user in database:', error);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error creating user in database:', error);
+      return null;
+    }
+  };
+
   const checkAuthState = async () => {
     try {
       setLoading(true);
@@ -71,12 +108,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const idToken = session.tokens.idToken;
         const userRole = (idToken?.payload['custom:role'] as string) || 'user';
         
+        console.log('Cognito user found:', {
+          userId: currentUser.userId,
+          email: idToken?.payload.email,
+          role: userRole
+        });
+
+        // Create user in database (API will handle duplicates)
+        const dbUser = await createUserInDatabase(currentUser, idToken);
+        
+        // Set user state with combined data
         setUser({
           id: currentUser.userId,
-          email: idToken?.payload.email as string || currentUser.signInDetails?.loginId || '',
+          email: idToken?.payload.email as string || '',
           name: idToken?.payload.name as string,
           role: userRole as 'user' | 'admin',
-          emailVerified: idToken?.payload.email_verified as boolean
+          emailVerified: idToken?.payload.email_verified as boolean,
+          _id: dbUser?._id,
+          createdAt: dbUser?.createdAt,
+          updatedAt: dbUser?.updatedAt
         });
       } else {
         setUser(null);
@@ -112,12 +162,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     role: 'user' | 'admin' = 'user'
   ): Promise<{ needsConfirmation: boolean; username: string }> => {
     try {
-      // Create a unique username from email + timestamp
       const timestamp = Date.now();
       const randomStr = Math.random().toString(36).substring(2, 8);
       const username = `${email.split('@')[0]}_${timestamp}_${randomStr}`;
       
-      console.log('Creating user with username:', username);
+      console.log('Creating Cognito user:', { username, email, name, role });
       
       const result = await amplifySignUp({
         username: username,
@@ -131,7 +180,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       });
 
-      console.log('SignUp result:', result);
+      console.log('Cognito signup result:', result);
 
       return {
         needsConfirmation: !result.isSignUpComplete,
