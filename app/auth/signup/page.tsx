@@ -27,12 +27,12 @@ export default function SignUpPage() {
     e.preventDefault();
     
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error(t('toast.passwordMismatch'));
       return;
     }
 
     if (password.length < 8) {
-      toast.error('Password must be at least 8 characters');
+      toast.error(t('toast.passwordTooShort'));
       return;
     }
 
@@ -42,7 +42,7 @@ export default function SignUpPage() {
     const hasNumbers = /\d/.test(password);
     
     if (!hasUpperCase || !hasLowerCase || !hasNumbers) {
-      toast.error('Password must contain uppercase, lowercase, and numbers');
+      toast.error(t('toast.passwordWeak'));
       return;
     }
 
@@ -52,16 +52,16 @@ export default function SignUpPage() {
       const result = await signUp(email, password, name, role);
       
       if (result.needsConfirmation) {
-        toast.success('Account created! Please check your email for verification code.');
+        toast.success(t('toast.accountCreated'));
         // Pass both email and username to confirmation page
         router.push(`/auth/confirm?email=${encodeURIComponent(email)}&username=${encodeURIComponent(result.username)}`);
       } else {
-        toast.success('Account created successfully!');
+        toast.success(t('toast.accountSuccess'));
         router.push('/');
       }
     } catch (error: any) {
       console.error('Sign up error:', error);
-      toast.error(error.message || 'Failed to create account');
+      toast.error(error.message || t('toast.createAccountFailed'));
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export default function SignUpPage() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  placeholder="Enter your full name"
+                  placeholder={t('auth.signup.fullNamePlaceholder')}
                 />
               </div>
 
@@ -97,20 +97,20 @@ export default function SignUpPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="Enter your email"
+                  placeholder={t('auth.signup.emailPlaceholder')}
                 />
               </div>
 
               <div>
-                <Label htmlFor="role">Account Type</Label>
+                <Label htmlFor="role">{t('auth.signup.accountType')}</Label>
                 <RadioGroup value={role} onValueChange={(value) => setRole(value as 'user' | 'admin')}>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="user" id="user" />
-                    <Label htmlFor="user">User</Label>
+                    <Label htmlFor="user">{t('auth.signup.user')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="admin" id="admin" />
-                    <Label htmlFor="admin">Admin</Label>
+                    <Label htmlFor="admin">{t('auth.signup.admin')}</Label>
                   </div>
                 </RadioGroup>
               </div>
@@ -123,11 +123,11 @@ export default function SignUpPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Create a strong password"
+                  placeholder={t('auth.signup.passwordPlaceholder')}
                   minLength={8}
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Must be 8+ characters with uppercase, lowercase, and numbers
+                  {t('auth.signup.passwordRequirements')}
                 </p>
               </div>
 
@@ -139,12 +139,12 @@ export default function SignUpPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  placeholder="Confirm your password"
+                  placeholder={t('auth.signup.confirmPasswordPlaceholder')}
                 />
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Creating account...' : t('auth.signup.button')}
+                {loading ? t('auth.signup.creating') : t('auth.signup.button')}
               </Button>
             </form>
 

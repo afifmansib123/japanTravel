@@ -5,6 +5,7 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { CartProvider } from '@/contexts/CartContext';
 import { Toaster } from 'sonner';
+import Navbar from '@/components/layout/Navbar';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -24,6 +25,7 @@ export default function RootLayout({
         <LanguageProvider>
           <AuthProvider>
             <CartProvider>
+              <Navbar/>
               {children}
               <Toaster position="top-right" />
             </CartProvider>

@@ -25,21 +25,21 @@ export default function SignInPage() {
 
     try {
       await signIn(email, password);
-      toast.success('Signed in successfully!');
+      toast.success(t('toast.signInSuccess'));
       router.push('/');
     } catch (error: any) {
       console.error('Sign in error:', error);
       
       // Handle specific error cases
       if (error.message.includes('UserNotConfirmedException')) {
-        toast.error('Please verify your email first');
+        toast.error(t('toast.verifyEmail'));
         router.push(`/auth/confirm?email=${encodeURIComponent(email)}`);
       } else if (error.message.includes('NotAuthorizedException')) {
-        toast.error('Invalid email or password');
+        toast.error(t('toast.invalidCredentials'));
       } else if (error.message.includes('UserNotFoundException')) {
-        toast.error('No account found with this email');
+        toast.error(t('toast.userNotFound'));
       } else {
-        toast.error(error.message || 'Failed to sign in');
+        toast.error(error.message || t('toast.signInFailed'));
       }
     } finally {
       setLoading(false);
@@ -64,7 +64,7 @@ export default function SignInPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  placeholder="Enter your email"
+                  placeholder={t('auth.signin.emailPlaceholder')}
                 />
               </div>
               
@@ -76,12 +76,12 @@ export default function SignInPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  placeholder="Enter your password"
+                  placeholder={t('auth.signin.passwordPlaceholder')}
                 />
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Signing in...' : t('auth.signin.button')}
+                {loading ? t('auth.signin.signingIn') : t('auth.signin.button')}
               </Button>
             </form>
 
@@ -96,10 +96,10 @@ export default function SignInPage() {
 
             {/* Demo credentials info - you can remove this later */}
             <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800 font-medium mb-2">Demo Account</p>
+              <p className="text-sm text-blue-800 font-medium mb-2">{t('auth.signin.demoAccount')}</p>
               <div className="text-xs text-blue-700 space-y-1">
-                <p>Create a new account to test the authentication flow</p>
-                <p>Verification codes will be sent to your email</p>
+                <p>{t('auth.signin.demoDesc1')}</p>
+                <p>{t('auth.signin.demoDesc2')}</p>
               </div>
             </div>
           </CardContent>
