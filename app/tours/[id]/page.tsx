@@ -254,43 +254,39 @@ useEffect(() => {
       {loadingAvailability ? (
         <p className="text-gray-500">Checking availability...</p>
       ) : (
-        tour.timeSlots.filter(slot => slot.isActive).map((timeSlot, index) => {
-          const timeSlotKey = `${timeSlot.startTime}-${timeSlot.endTime}`;
-          const bookedQuantity = availabilityData[index] || 0;
-          const availableSpots = timeSlot.maxCapacity - bookedQuantity;
-          const isFullyBooked = availableSpots <= 0;
+       tour.timeSlots.filter(slot => slot.isActive).map((timeSlot, index) => {
+  const bookedQuantity = availabilityData[index] || 0;
+  const isFullyBooked = bookedQuantity >= timeSlot.maxCapacity; // Any booking = fully booked
+  const availableSpots = isFullyBooked ? 0 : timeSlot.maxCapacity;
 
-          return (
-            <div key={index} className={`p-3 border rounded-lg ${isFullyBooked ? 'bg-gray-100 opacity-50' : 'hover:bg-gray-50'}`}>
-              <div className="flex justify-between items-center">
-                <div>
-                  <div className="font-medium">{formatTimeSlot(timeSlot)}</div>
-                  <div className="text-sm text-gray-600">
-                    {isFullyBooked ? (
-                      <span className="text-red-600 font-medium">Fully Booked</span>
-                    ) : (
-                      <>
-                        <span className="text-green-600">{availableSpots} spots available</span>
-                        <span className="text-gray-400"> (of {timeSlot.maxCapacity})</span>
-                      </>
-                    )}
-                  </div>
-                  <div className="text-sm font-medium text-blue-600">
-                    {formatPrice(tour.price)} per person
-                  </div>
-                </div>
-                <Button
-                  onClick={() => addSelection(index)}
-                  size="sm"
-                  className="ml-2"
-                  disabled={isFullyBooked}
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          );
-        })
+  return (
+    <div key={index} className={`p-3 border rounded-lg ${isFullyBooked ? 'bg-gray-100 opacity-50' : 'hover:bg-gray-50'}`}>
+      <div className="flex justify-between items-center">
+        <div>
+          <div className="font-medium">{formatTimeSlot(timeSlot)}</div>
+          <div className="text-sm text-gray-600">
+            {isFullyBooked ? (
+              <span className="text-red-600 font-medium">Fully Booked</span>
+            ) : (
+              <span className="text-green-600 font-medium">Available</span>
+            )}
+          </div>
+          <div className="text-sm font-medium text-blue-600">
+            {formatPrice(tour.price)} per person
+          </div>
+        </div>
+        <Button
+          onClick={() => addSelection(index)}
+          size="sm"
+          className="ml-2"
+          disabled={isFullyBooked}
+        >
+          <Plus className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+})
       )}
     </div>
   ) : (

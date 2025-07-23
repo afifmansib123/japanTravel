@@ -59,7 +59,7 @@ const existingBookings = await Booking.find({
         timeSlotIndex, // Now we have the correct index
         quantity: item.quantity,
         totalPrice: item.price * item.quantity, // Calculate from price and quantity
-        status: 'pending',
+        status: 'confirmed',
         expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
       });
 
