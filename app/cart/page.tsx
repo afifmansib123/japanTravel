@@ -19,52 +19,68 @@ export default function CartPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const { t } = useLanguage();
 
-  const handleCheckout = async () => {
-    if (!user) {
-      toast.error(t("cart.signin.required"));
-      router.push("/auth/signin");
-      return;
+const handleCheckout = async () => {
+  if (!user) {
+    toast.error(t('cart.signin.required'));
+    router.push('/auth/signin');
+    return;
+  }
+
+  // Debug log
+  console.log('User object in checkout:', user);
+
+  if (items.length === 0) {
+    toast.error(t('cart.empty.title'));
+    return;
+  }
+
+  setIsProcessing(true);
+  
+  try {
+    // Try different possible field names for cognitoId
+    const cognitoId = user.cognitoId || user.id || user._id || user.userId;
+    
+    if (!cognitoId) {
+      console.error('No cognitoId found in user object:', user);
+      throw new Error('User identification missing');
     }
 
-    if (items.length === 0) {
-      toast.error(t("cart.empty.title"));
-      return;
+    console.log('Using cognitoId:', cognitoId);
+
+    const response = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        items,
+        cognitoId
+      }),
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      console.error('Checkout API error:', data);
+      throw new Error(data.error || 'Checkout failed');
     }
 
-    setIsProcessing(true);
-
-    try {
-      // Here you would normally send booking details to your API
-      const bookingData = {
-        userId: user._id,
-        items: items.map((item) => ({
-          tourId: item.tourId || item.id,
-          tourName: item.name,
-          bookingDate: item.bookingDate,
-          timeSlot: item.timeSlot,
-          quantity: item.quantity,
-          pricePerPerson: item.price / item.quantity, // Original price per person
-          totalPrice: item.price * item.quantity,
-        })),
-        totalAmount: total + 99 + Math.round((total + 99) * 0.1),
-        bookingDate: new Date().toISOString(),
-      };
-
-      console.log("Booking Data:", bookingData); // For debugging
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-
-      // Clear cart and show success
-      clearCart();
-      toast.success("Booking confirmed! Check your email for details.");
-      router.push("/booking-success");
-    } catch (error) {
-      toast.error("Booking failed. Please try again.");
-    } finally {
-      setIsProcessing(false);
+    // Redirect to Stripe
+    const stripe = await import('@stripe/stripe-js').then(mod => 
+      mod.loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+    );
+    
+    if (stripe) {
+      await stripe.redirectToCheckout({ sessionId: data.sessionId });
     }
-  };
+    
+  } catch (error: any) {
+    console.error('Checkout error:', error);
+    toast.error(error.message || 'Checkout failed');
+  } finally {
+    setIsProcessing(false);
+  }
+};
 
   if (items.length === 0) {
     return (
@@ -108,7 +124,7 @@ export default function CartPage() {
                       </h3>
                       <div className="space-y-1">
                         <p className="text-gray-600">
-                          ${item.price} {t("common.perPerson")}
+                          ¥{item.price} {t("common.perPerson")}
                         </p>
                         {item.bookingDate && (
                           <p className="text-sm text-blue-600">
@@ -154,7 +170,7 @@ export default function CartPage() {
                     </div>
                     <div className="text-right">
                       <p className="text-lg font-semibold">
-                        ${item.price * item.quantity}
+                        ¥{item.price * item.quantity}
                       </p>
                       <Button
                         variant="ghost"
@@ -219,20 +235,20 @@ export default function CartPage() {
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
                   <span>{t("cart.subtotal")}</span>
-                  <span>${total}</span>
+                  <span>¥{total}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{t("cart.serviceFee")}</span>
-                  <span>$99</span>
+                  <span>¥99</span>
                 </div>
                 <div className="flex justify-between">
                   <span>{t("cart.taxes")}</span>
-                  <span>${Math.round((total + 99) * 0.1)}</span>
+                  <span>¥{Math.round((total + 99) * 0.1)}</span>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-lg font-semibold">
                     <span>{t("cart.total")}</span>
-                    <span>${total + 99 + Math.round((total + 99) * 0.1)}</span>
+                    <span>¥{total + 99 + Math.round((total + 99) * 0.1)}</span>
                   </div>
                 </div>
 
