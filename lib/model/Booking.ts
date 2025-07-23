@@ -12,7 +12,6 @@ export interface IBooking extends Document {
   stripeSessionId?: string;
   stripePaymentIntentId?: string;
   createdAt: Date;
-  expiresAt?: Date;
 }
 
 const bookingSchema = new Schema<IBooking>({
@@ -50,10 +49,6 @@ const bookingSchema = new Schema<IBooking>({
   },
   stripeSessionId: String,
   stripePaymentIntentId: String,
-  expiresAt: {
-    type: Date,
-    index: { expireAfterSeconds: 0 }
-  }
 }, {
   timestamps: true
 });
