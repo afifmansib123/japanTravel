@@ -36,7 +36,6 @@ export async function POST(request: NextRequest) {
             { 
               status: 'confirmed',
               stripePaymentIntentId: session.payment_intent,
-              $unset: { expiresAt: 1 } // Remove expiry since it's confirmed
             },
             { new: true }
           ).populate('tourId');

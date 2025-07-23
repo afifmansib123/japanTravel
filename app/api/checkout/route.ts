@@ -60,7 +60,6 @@ const existingBookings = await Booking.find({
         quantity: item.quantity,
         totalPrice: item.price * item.quantity, // Calculate from price and quantity
         status: 'confirmed',
-        expiresAt: new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
       });
 
       return tempBooking.save();
