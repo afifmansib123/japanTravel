@@ -113,6 +113,10 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
   const [selections, setSelections] = useState<BookingSelection[]>([]);
   const { t } = useLanguage();
 
+
+  const [availabilityData, setAvailabilityData] = useState<{[key: string]: number}>({});
+const [loadingAvailability, setLoadingAvailability] = useState(false);
+
   const getAvailableDates = () => {
     const today = new Date();
     const maxDate = new Date();
@@ -132,6 +136,31 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
     }
     return availableDates;
   };
+
+  const checkAvailability = async (date: Date) => {
+  if (!date) return;
+  
+  setLoadingAvailability(true);
+  try {
+    const dateString = date.toISOString().split('T')[0];
+    const response = await fetch(`/api/tours/${tour._id}/availability?date=${dateString}`);
+    const data = await response.json();
+    
+    if (response.ok) {
+      setAvailabilityData(data.availability);
+    }
+  } catch (error) {
+    console.error('Error checking availability:', error);
+  } finally {
+    setLoadingAvailability(false);
+  }
+};
+
+useEffect(() => {
+  if (selectedDate) {
+    checkAvailability(selectedDate);
+  }
+}, [selectedDate]);
 
   const formatTimeSlot = (timeSlot: any) => {
     return `${timeSlot.startTime} - ${timeSlot.endTime}`;
@@ -217,44 +246,57 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
           </div>
 
           {/* Time Slots */}
-          <div>
-            <h3 className="font-semibold mb-4">Available Time Slots</h3>
-            {selectedDate ? (
-              <div className="space-y-3">
-                {tour.timeSlots
-                  .filter((slot) => slot.isActive)
-                  .map((timeSlot, index) => (
-                    <div
-                      key={index}
-                      className="p-3 border rounded-lg hover:bg-gray-50"
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium">
-                            {formatTimeSlot(timeSlot)}
-                          </div>
-                          <div className="text-sm text-gray-600">
-                            Max {timeSlot.maxCapacity} people
-                          </div>
-                          <div className="text-sm font-medium text-blue-600">
-                            {formatPrice(tour.price)} per person
-                          </div>
-                        </div>
-                        <Button
-                          onClick={() => addSelection(index)}
-                          size="sm"
-                          className="ml-2"
-                        >
-                          <Plus className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
+{/* Time Slots */}
+<div>
+  <h3 className="font-semibold mb-4">Available Time Slots</h3>
+  {selectedDate ? (
+    <div className="space-y-3">
+      {loadingAvailability ? (
+        <p className="text-gray-500">Checking availability...</p>
+      ) : (
+        tour.timeSlots.filter(slot => slot.isActive).map((timeSlot, index) => {
+          const timeSlotKey = `${timeSlot.startTime}-${timeSlot.endTime}`;
+          const bookedQuantity = availabilityData[index] || 0;
+          const availableSpots = timeSlot.maxCapacity - bookedQuantity;
+          const isFullyBooked = availableSpots <= 0;
+
+          return (
+            <div key={index} className={`p-3 border rounded-lg ${isFullyBooked ? 'bg-gray-100 opacity-50' : 'hover:bg-gray-50'}`}>
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="font-medium">{formatTimeSlot(timeSlot)}</div>
+                  <div className="text-sm text-gray-600">
+                    {isFullyBooked ? (
+                      <span className="text-red-600 font-medium">Fully Booked</span>
+                    ) : (
+                      <>
+                        <span className="text-green-600">{availableSpots} spots available</span>
+                        <span className="text-gray-400"> (of {timeSlot.maxCapacity})</span>
+                      </>
+                    )}
+                  </div>
+                  <div className="text-sm font-medium text-blue-600">
+                    {formatPrice(tour.price)} per person
+                  </div>
+                </div>
+                <Button
+                  onClick={() => addSelection(index)}
+                  size="sm"
+                  className="ml-2"
+                  disabled={isFullyBooked}
+                >
+                  <Plus className="w-4 h-4" />
+                </Button>
               </div>
-            ) : (
-              <p className="text-gray-500">Please select a date first</p>
-            )}
-          </div>
+            </div>
+          );
+        })
+      )}
+    </div>
+  ) : (
+    <p className="text-gray-500">Please select a date first</p>
+  )}
+</div>
         </div>
 
         {/* Selected Items */}

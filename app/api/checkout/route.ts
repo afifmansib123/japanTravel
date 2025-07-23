@@ -37,12 +37,13 @@ export async function POST(request: NextRequest) {
       }
 
       // Check current bookings for this slot
-      const existingBookings = await Booking.find({
-        tourId: item.tourId,
-        bookingDate,
-        timeSlotIndex,
-        status: { $in: ['confirmed', 'pending'] }
-      });
+      // In the checkout route, update the availability check:
+const existingBookings = await Booking.find({
+  tourId: item.tourId,
+  bookingDate,
+  timeSlotIndex,
+  status: { $in: ['confirmed', 'pending'] } // Check both confirmed and pending
+});
 
       const bookedQuantity = existingBookings.reduce((sum, booking) => sum + booking.quantity, 0);
       

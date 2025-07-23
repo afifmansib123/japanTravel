@@ -237,20 +237,20 @@ const handleCheckout = async () => {
                   <span>{t("cart.subtotal")}</span>
                   <span>¥{total}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>{t("cart.serviceFee")}</span>
-                  <span>¥99</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>{t("cart.taxes")}</span>
-                  <span>¥{Math.round((total + 99) * 0.1)}</span>
-                </div>
-                <div className="border-t pt-4">
-                  <div className="flex justify-between text-lg font-semibold">
-                    <span>{t("cart.total")}</span>
-                    <span>¥{total + 99 + Math.round((total + 99) * 0.1)}</span>
-                  </div>
-                </div>
+<div className="flex justify-between">
+  <span>{t("cart.serviceFee")}</span>
+  <span>¥0</span>
+</div>
+<div className="flex justify-between">
+  <span>{t("cart.taxes")}</span>
+  <span>¥{Math.round(total * 0.01)}</span>
+</div>
+<div className="border-t pt-4">
+  <div className="flex justify-between text-lg font-semibold">
+    <span>{t("cart.total")}</span>
+    <span>¥{total + Math.round(total * 0.01)}</span>
+  </div>
+</div>
 
                 {user ? (
                   <Button
