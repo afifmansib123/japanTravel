@@ -30,6 +30,16 @@ import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { useLanguage } from "@/contexts/LanguageContext"; // --- IMPORT useLanguage ---
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Clock, Plus, Minus, Calendar as CalendarIcon } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Interfaces remain the same...
 interface Tour {
@@ -40,6 +50,15 @@ interface Tour {
   category: { _id: string; name: string };
   location: string;
   duration: number;
+  timeSlotType: "hourly" | "daily" | "custom";
+  timeSlots: Array<{
+    startTime: string;
+    endTime: string;
+    maxCapacity: number;
+    isActive: boolean;
+  }>;
+  operatingDays: string[];
+  advanceBookingDays: number;
   price: number;
   discountedPrice?: number;
   currency: string;
@@ -56,6 +75,19 @@ interface Tour {
   createdAt: string;
   updatedAt: string;
 }
+interface BookingSelection {
+  date: string;
+  timeSlotIndex: number;
+  quantity: number;
+  totalPrice: number;
+}
+
+interface TimeSlotModalProps {
+  tour: Tour;
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: (selections: BookingSelection[]) => void;
+}
 interface ImageLightboxProps {
   images: string[];
   startIndex: number;
@@ -71,6 +103,226 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
   // ... (no changes needed here)
 };
 
+const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
+  tour,
+  isOpen,
+  onClose,
+  onConfirm,
+}) => {
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selections, setSelections] = useState<BookingSelection[]>([]);
+  const { t } = useLanguage();
+
+  const getAvailableDates = () => {
+    const today = new Date();
+    const maxDate = new Date();
+    maxDate.setDate(today.getDate() + 90); // 3 months ahead
+
+    const availableDates: Date[] = [];
+
+    for (let d = new Date(today); d <= maxDate; d.setDate(d.getDate() + 1)) {
+      const dayName = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      if (tour.operatingDays.includes(dayName)) {
+        const checkDate = new Date(d);
+        checkDate.setDate(checkDate.getDate() - tour.advanceBookingDays);
+        if (checkDate <= today) {
+          availableDates.push(new Date(d));
+        }
+      }
+    }
+    return availableDates;
+  };
+
+  const formatTimeSlot = (timeSlot: any) => {
+    return `${timeSlot.startTime} - ${timeSlot.endTime}`;
+  };
+
+  const addSelection = (timeSlotIndex: number) => {
+    if (!selectedDate) return;
+
+    const dateString = selectedDate.toISOString().split("T")[0];
+    const existingIndex = selections.findIndex(
+      (s) => s.date === dateString && s.timeSlotIndex === timeSlotIndex
+    );
+
+    if (existingIndex >= 0) {
+      const updated = [...selections];
+      updated[existingIndex].quantity += 1;
+      updated[existingIndex].totalPrice =
+        updated[existingIndex].quantity * tour.price;
+      setSelections(updated);
+    } else {
+      setSelections([
+        ...selections,
+        {
+          date: dateString,
+          timeSlotIndex,
+          quantity: 1,
+          totalPrice: tour.price,
+        },
+      ]);
+    }
+  };
+
+  const updateQuantity = (index: number, change: number) => {
+    const updated = [...selections];
+    updated[index].quantity = Math.max(0, updated[index].quantity + change);
+    updated[index].totalPrice = updated[index].quantity * tour.price;
+
+    if (updated[index].quantity === 0) {
+      updated.splice(index, 1);
+    }
+
+    setSelections(updated);
+  };
+
+  const getTotalPrice = () => {
+    return selections.reduce((sum, selection) => sum + selection.totalPrice, 0);
+  };
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: tour.currency,
+    }).format(price);
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Select Date & Time</DialogTitle>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Calendar */}
+          <div>
+            <h3 className="font-semibold mb-4">Choose Date</h3>
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={setSelectedDate}
+              disabled={(date) => {
+                const dayName = date
+                  .toLocaleDateString("en-US", { weekday: "long" })
+                  .toLowerCase();
+                return (
+                  !tour.operatingDays.includes(dayName) ||
+                  date < new Date() ||
+                  date > new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
+                );
+              }}
+              className="rounded-md border"
+            />
+          </div>
+
+          {/* Time Slots */}
+          <div>
+            <h3 className="font-semibold mb-4">Available Time Slots</h3>
+            {selectedDate ? (
+              <div className="space-y-3">
+                {tour.timeSlots
+                  .filter((slot) => slot.isActive)
+                  .map((timeSlot, index) => (
+                    <div
+                      key={index}
+                      className="p-3 border rounded-lg hover:bg-gray-50"
+                    >
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <div className="font-medium">
+                            {formatTimeSlot(timeSlot)}
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            Max {timeSlot.maxCapacity} people
+                          </div>
+                          <div className="text-sm font-medium text-blue-600">
+                            {formatPrice(tour.price)} per person
+                          </div>
+                        </div>
+                        <Button
+                          onClick={() => addSelection(index)}
+                          size="sm"
+                          className="ml-2"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <p className="text-gray-500">Please select a date first</p>
+            )}
+          </div>
+        </div>
+
+        {/* Selected Items */}
+        {selections.length > 0 && (
+          <div className="mt-6 border-t pt-6">
+            <h3 className="font-semibold mb-4">Your Selections</h3>
+            <div className="space-y-3">
+              {selections.map((selection, index) => (
+                <div
+                  key={index}
+                  className="flex justify-between items-center p-3 bg-blue-50 rounded-lg"
+                >
+                  <div>
+                    <div className="font-medium">
+                      {new Date(selection.date).toLocaleDateString()} -
+                      {formatTimeSlot(tour.timeSlots[selection.timeSlotIndex])}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {selection.quantity} × {formatPrice(tour.price)} ={" "}
+                      {formatPrice(selection.totalPrice)}
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateQuantity(index, -1)}
+                    >
+                      <Minus className="w-4 h-4" />
+                    </Button>
+                    <span className="font-medium">{selection.quantity}</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => updateQuantity(index, 1)}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+              <div className="flex justify-between items-center font-bold text-lg">
+                <span>Total: {formatPrice(getTotalPrice())}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => onConfirm(selections)}
+            disabled={selections.length === 0}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            Add to Cart ({selections.length}{" "}
+            {selections.length === 1 ? "booking" : "bookings"})
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
 // --- MAIN TOUR DETAIL PAGE COMPONENT (UPDATED FOR LANGUAGE) ---
 const TourDetailView: React.FC = () => {
   const params = useParams();
@@ -84,6 +336,9 @@ const TourDetailView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
+
+  const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (!tourId) {
@@ -116,14 +371,40 @@ const TourDetailView: React.FC = () => {
   };
 
   const handleAddToCart = () => {
+    if (!user) {
+      toast.error("Please log in to book tours");
+      return;
+    }
+
+    if (user.role !== "user") {
+      toast.error("Only customers can book tours");
+      return;
+    }
+
+    setShowTimeSlotModal(true);
+  };
+
+  const handleTimeSlotConfirm = (selections: BookingSelection[]) => {
     if (!tour) return;
-    addItem({
-      id: tour._id,
-      name: tour.name,
-      price: tour.price,
-      image: tour.images[0],
+
+    selections.forEach((selection) => {
+      const timeSlot = tour.timeSlots[selection.timeSlotIndex];
+      const bookingDetails = {
+        id: `${tour._id}-${selection.date}-${selection.timeSlotIndex}`,
+        name: `${tour.name} - ${selection.date} (${timeSlot.startTime}-${timeSlot.endTime})`,
+        price: selection.totalPrice,
+        quantity: selection.quantity,
+        image: tour.images[0],
+        bookingDate: selection.date,
+        timeSlot: `${timeSlot.startTime}-${timeSlot.endTime}`,
+        tourId: tour._id,
+      };
+
+      addItem(bookingDetails);
     });
-    toast.success(`${tour.name} has been added to your cart!`);
+
+    toast.success(`${selections.length} booking(s) added to cart!`);
+    setShowTimeSlotModal(false);
   };
 
   const formatPrice = (price: number, currency: string) => {
@@ -313,6 +594,79 @@ const TourDetailView: React.FC = () => {
                 </div>
               </div>
 
+              <Tabs defaultValue="schedule" className="w-full">
+                <TabsList className="grid w-full grid-cols-4">
+                  <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                  <TabsTrigger value="description">
+                    {t("tourDetail.about")}
+                  </TabsTrigger>
+                  <TabsTrigger value="itinerary">
+                    {t("tourDetail.itinerary")}
+                  </TabsTrigger>
+                  <TabsTrigger value="details">
+                    {t("tourDetail.whatsIncluded")}
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="schedule" className="mt-6">
+                  <h4 className="font-semibold text-lg text-gray-900 mb-3">
+                    Schedule & Availability
+                  </h4>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="p-4 border rounded-lg">
+                      <h5 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <CalendarIcon className="w-5 h-5 mr-2" />
+                        Operating Days
+                      </h5>
+                      <div className="flex flex-wrap gap-2">
+                        {tour.operatingDays.map((day) => (
+                          <Badge
+                            key={day}
+                            variant="secondary"
+                            className="capitalize"
+                          >
+                            {day}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="p-4 border rounded-lg">
+                      <h5 className="font-medium text-gray-900 mb-3 flex items-center">
+                        <Clock className="w-5 h-5 mr-2" />
+                        Available Times
+                      </h5>
+                      <div className="space-y-2">
+                        {tour.timeSlots
+                          .filter((slot) => slot.isActive)
+                          .map((timeSlot, index) => (
+                            <div
+                              key={index}
+                              className="flex justify-between items-center p-2 bg-gray-50 rounded"
+                            >
+                              <span className="font-medium">
+                                {timeSlot.startTime} - {timeSlot.endTime}
+                              </span>
+                              <span className="text-sm text-gray-600">
+                                Max {timeSlot.maxCapacity} people
+                              </span>
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      <strong>Booking Policy:</strong> Book at least{" "}
+                      {tour.advanceBookingDays} day(s) in advance. Times shown
+                      are for {tour.timeSlotType} slots.
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+
               <Tabs defaultValue="description" className="w-full">
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="description">
@@ -396,8 +750,13 @@ const TourDetailView: React.FC = () => {
                 <Button
                   onClick={handleAddToCart}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                  disabled={!user || user.role !== "user"}
                 >
-                  {t("tourDetail.addToCart")}
+                  {!user
+                    ? "Login to Book"
+                    : user.role !== "user"
+                    ? "Customer Access Only"
+                    : "Select Date & Time"}
                 </Button>
                 <Button variant="outline" className="w-full py-3">
                   <ClipboardList className="w-5 h-5 mr-2" />
@@ -419,6 +778,15 @@ const TourDetailView: React.FC = () => {
           images={tour.images}
           startIndex={lightboxStartIndex}
           onClose={() => setLightboxOpen(false)}
+        />
+      )}
+
+      {showTimeSlotModal && (
+        <TimeSlotSelectionModal
+          tour={tour}
+          isOpen={showTimeSlotModal}
+          onClose={() => setShowTimeSlotModal(false)}
+          onConfirm={handleTimeSlotConfirm}
         />
       )}
     </div>

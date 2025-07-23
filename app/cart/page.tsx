@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Minus, Plus, Trash2, CreditCard } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { useCart } from '@/contexts/CartContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { toast } from 'sonner';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useState } from "react";
+import { Minus, Plus, Trash2, CreditCard } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useCart } from "@/contexts/CartContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { toast } from "sonner";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { items, total, updateQuantity, removeItem, clearCart } = useCart();
@@ -21,28 +21,46 @@ export default function CartPage() {
 
   const handleCheckout = async () => {
     if (!user) {
-      toast.error(t('cart.signin.required'));
-      router.push('/auth/signin');
+      toast.error(t("cart.signin.required"));
+      router.push("/auth/signin");
       return;
     }
 
     if (items.length === 0) {
-      toast.error(t('cart.empty.title'));
+      toast.error(t("cart.empty.title"));
       return;
     }
 
     setIsProcessing(true);
-    
-    // Simulate payment processing
+
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
+      // Here you would normally send booking details to your API
+      const bookingData = {
+        userId: user._id,
+        items: items.map((item) => ({
+          tourId: item.tourId || item.id,
+          tourName: item.name,
+          bookingDate: item.bookingDate,
+          timeSlot: item.timeSlot,
+          quantity: item.quantity,
+          pricePerPerson: item.price / item.quantity, // Original price per person
+          totalPrice: item.price * item.quantity,
+        })),
+        totalAmount: total + 99 + Math.round((total + 99) * 0.1),
+        bookingDate: new Date().toISOString(),
+      };
+
+      console.log("Booking Data:", bookingData); // For debugging
+
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+
       // Clear cart and show success
       clearCart();
-      toast.success('Payment successful! Booking confirmation sent to your email.');
-      router.push('/booking-success');
+      toast.success("Booking confirmed! Check your email for details.");
+      router.push("/booking-success");
     } catch (error) {
-      toast.error('Payment failed. Please try again.');
+      toast.error("Booking failed. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -53,10 +71,12 @@ export default function CartPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">🛒</div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">{t('cart.empty.title')}</h2>
-          <p className="text-gray-600 mb-8">{t('cart.empty.subtitle')}</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">
+            {t("cart.empty.title")}
+          </h2>
+          <p className="text-gray-600 mb-8">{t("cart.empty.subtitle")}</p>
           <Button asChild size="lg">
-            <Link href="/tours">{t('cart.empty.browse')}</Link>
+            <Link href="/tours">{t("cart.empty.browse")}</Link>
           </Button>
         </div>
       </div>
@@ -66,8 +86,10 @@ export default function CartPage() {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">{t('cart.title')}</h1>
-        
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">
+          {t("cart.title")}
+        </h1>
+
         <div className="grid lg:grid-cols-3 gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
@@ -81,14 +103,32 @@ export default function CartPage() {
                       className="w-20 h-20 object-cover rounded-lg"
                     />
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                      <p className="text-gray-600">${item.price} {t('common.perPerson')}</p>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {item.name}
+                      </h3>
+                      <div className="space-y-1">
+                        <p className="text-gray-600">
+                          ${item.price} {t("common.perPerson")}
+                        </p>
+                        {item.bookingDate && (
+                          <p className="text-sm text-blue-600">
+                            📅 {new Date(item.bookingDate).toLocaleDateString()}
+                          </p>
+                        )}
+                        {item.timeSlot && (
+                          <p className="text-sm text-blue-600">
+                            🕒 {item.timeSlot}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                        onClick={() =>
+                          updateQuantity(item.id, item.quantity - 1)
+                        }
                         disabled={item.quantity <= 1}
                       >
                         <Minus className="h-4 w-4" />
@@ -96,20 +136,26 @@ export default function CartPage() {
                       <Input
                         type="number"
                         value={item.quantity}
-                        onChange={(e) => updateQuantity(item.id, parseInt(e.target.value) || 1)}
+                        onChange={(e) =>
+                          updateQuantity(item.id, parseInt(e.target.value) || 1)
+                        }
                         className="w-16 text-center"
                         min="1"
                       />
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                        onClick={() =>
+                          updateQuantity(item.id, item.quantity + 1)
+                        }
                       >
                         <Plus className="h-4 w-4" />
                       </Button>
                     </div>
                     <div className="text-right">
-                      <p className="text-lg font-semibold">${item.price * item.quantity}</p>
+                      <p className="text-lg font-semibold">
+                        ${item.price * item.quantity}
+                      </p>
                       <Button
                         variant="ghost"
                         size="sm"
@@ -125,59 +171,94 @@ export default function CartPage() {
             ))}
           </div>
 
+          {/* Booking Summary */}
+          <div className="lg:col-span-2 mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Booking Summary</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-sm text-gray-600">
+                    Total Bookings:{" "}
+                    <span className="font-semibold">{items.length}</span>
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    Total People:{" "}
+                    <span className="font-semibold">
+                      {items.reduce((sum, item) => sum + item.quantity, 0)}
+                    </span>
+                  </p>
+                  {items.some((item) => item.bookingDate) && (
+                    <p className="text-sm text-gray-600">
+                      Booking Dates:{" "}
+                      <span className="font-semibold">
+                        {Array.from(
+                          new Set(
+                            items
+                              .map((item) => item.bookingDate)
+                              .filter(Boolean)
+                          )
+                        )
+                          .map((date) => new Date(date!).toLocaleDateString())
+                          .join(", ")}
+                      </span>
+                    </p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Order Summary */}
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>{t('cart.summary')}</CardTitle>
+                <CardTitle>{t("cart.summary")}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between">
-                  <span>{t('cart.subtotal')}</span>
+                  <span>{t("cart.subtotal")}</span>
                   <span>${total}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{t('cart.serviceFee')}</span>
+                  <span>{t("cart.serviceFee")}</span>
                   <span>$99</span>
                 </div>
                 <div className="flex justify-between">
-                  <span>{t('cart.taxes')}</span>
+                  <span>{t("cart.taxes")}</span>
                   <span>${Math.round((total + 99) * 0.1)}</span>
                 </div>
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-lg font-semibold">
-                    <span>{t('cart.total')}</span>
+                    <span>{t("cart.total")}</span>
                     <span>${total + 99 + Math.round((total + 99) * 0.1)}</span>
                   </div>
                 </div>
-                
+
                 {user ? (
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     size="lg"
                     onClick={handleCheckout}
                     disabled={isProcessing}
                   >
                     <CreditCard className="h-4 w-4 mr-2" />
-                    {isProcessing ? t('cart.processing') : t('cart.checkout')}
+                    {isProcessing ? t("cart.processing") : t("cart.checkout")}
                   </Button>
                 ) : (
                   <div className="space-y-2">
                     <p className="text-sm text-gray-600 text-center">
-                      {t('cart.signin.required')}
+                      {t("cart.signin.required")}
                     </p>
                     <Button asChild className="w-full" size="lg">
-                      <Link href="/auth/signin">{t('nav.signin')}</Link>
+                      <Link href="/auth/signin">{t("nav.signin")}</Link>
                     </Button>
                   </div>
                 )}
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full"
-                  asChild
-                >
-                  <Link href="/tours">{t('cart.continue')}</Link>
+
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/tours">{t("cart.continue")}</Link>
                 </Button>
               </CardContent>
             </Card>

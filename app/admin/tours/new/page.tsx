@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { useForm, SubmitHandler } from "react-hook-form";
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useAuth } from '@/contexts/AuthContext';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 // --- SHADCN/UI & OTHER COMPONENT IMPORTS ---
 import { Input } from "@/components/ui/input";
@@ -29,8 +29,8 @@ import {
   FormMessage,
   FormDescription,
 } from "@/components/ui/form";
-import { ArrowLeft, Package } from 'lucide-react';
-import Link from 'next/link';
+import { ArrowLeft, Package } from "lucide-react";
+import Link from "next/link";
 
 // --- FILEPOND IMPORTS ---
 import { FilePond, registerPlugin } from "react-filepond";
@@ -47,13 +47,23 @@ registerPlugin(
 );
 
 // --- TOUR SPECIFIC OPTIONS ---
-const DIFFICULTY_OPTIONS = [
-  "easy",
-  "moderate", 
-  "challenging",
-  "extreme"
+const DIFFICULTY_OPTIONS = ["easy", "moderate", "challenging", "extreme"];
+
+const TIME_SLOT_TYPES = [
+  { value: "hourly", label: "Hourly Slots" },
+  { value: "daily", label: "Daily Tours" },
+  { value: "custom", label: "Custom Schedule" }
 ];
 
+const DAYS_OF_WEEK = [
+  { value: "monday", label: "Monday" },
+  { value: "tuesday", label: "Tuesday" },
+  { value: "wednesday", label: "Wednesday" },
+  { value: "thursday", label: "Thursday" },
+  { value: "friday", label: "Friday" },
+  { value: "saturday", label: "Saturday" },
+  { value: "sunday", label: "Sunday" }
+];
 
 interface Category {
   _id: string;
@@ -64,18 +74,70 @@ interface Category {
 
 // --- ZOD VALIDATION SCHEMA ---
 const formSchema = z.object({
-  name: z.string().min(5, { message: "Tour name must be at least 5 characters." }),
-  description: z.string().min(20, { message: "Description must be at least 20 characters." }),
+  name: z
+    .string()
+    .min(5, { message: "Tour name must be at least 5 characters." }),
+  description: z
+    .string()
+    .min(20, { message: "Description must be at least 20 characters." }),
   shortDescription: z.string().optional(),
-  category: z.string({ required_error: "Please select a category." }).min(1, "Category is required."),
+  category: z
+    .string({ required_error: "Please select a category." })
+    .min(1, "Category is required."),
   location: z.string().min(2, { message: "Location is required." }),
-  duration: z.coerce.number({ required_error: "Duration is required." }).positive("Duration must be a positive number."),
-  price: z.coerce.number({ required_error: "Price is required." }).positive("Price must be a positive number."),
+  duration: z.coerce
+    .number({ required_error: "Duration is required." })
+    .positive("Duration must be a positive number."),
+  price: z.coerce
+    .number({ required_error: "Price is required." })
+    .positive("Price must be a positive number."),
   discountedPrice: z.coerce.number().optional().nullable(),
   currency: z.string().default("JPY"),
-  maxGroupSize: z.coerce.number({ required_error: "Max group size is required." }).positive("Max group size must be a positive number."),
+  maxGroupSize: z.coerce
+    .number({ required_error: "Max group size is required." })
+    .positive("Max group size must be a positive number."),
   difficulty: z.enum(["easy", "moderate", "challenging", "extreme"]),
-  photos: z.array(z.instanceof(File)).min(1, { message: "At least one tour photo is required." }),
+  timeSlotType: z.enum(["hourly", "daily", "custom"]).default("daily"),
+  timeSlots: z
+    .array(
+      z.object({
+        startTime: z
+          .string()
+          .regex(
+            /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+            "Invalid time format (HH:MM)"
+          ),
+        endTime: z
+          .string()
+          .regex(
+            /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+            "Invalid time format (HH:MM)"
+          ),
+        maxCapacity: z.coerce.number().positive("Capacity must be positive"),
+        isActive: z.boolean().default(true),
+      })
+    )
+    .min(1, "At least one time slot is required"),
+  operatingDays: z
+    .array(
+      z.enum([
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+      ])
+    )
+    .min(1, "Select at least one operating day"),
+  advanceBookingDays: z.coerce
+    .number()
+    .min(0, "Advance booking days cannot be negative")
+    .default(1),
+  photos: z
+    .array(z.instanceof(File))
+    .min(1, { message: "At least one tour photo is required." }),
   isActive: z.boolean().default(true),
   isFeatured: z.boolean().default(false),
 });
@@ -117,13 +179,13 @@ const NewTourPage = () => {
   const { user } = useAuth();
   const { t } = useLanguage();
   const router = useRouter();
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
-  
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
@@ -141,30 +203,45 @@ const NewTourPage = () => {
       currency: "JPY",
       maxGroupSize: 1,
       difficulty: "moderate",
+      timeSlotType: "daily",
+      timeSlots: [
+        {
+          startTime: "09:00",
+          endTime: "17:00",
+          maxCapacity: 10,
+          isActive: true,
+        },
+      ],
+      operatingDays: [
+        "monday",
+        "tuesday",
+        "wednesday",
+        "thursday",
+        "friday",
+        "saturday",
+        "sunday",
+      ],
+      advanceBookingDays: 1,
       photos: [],
       isActive: true,
       isFeatured: false,
     },
   });
 
-  const {
-    control,
-    handleSubmit,
-    reset,
-  } = form;
+  const { control, handleSubmit, reset } = form;
 
   // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
         setCategoriesLoading(true);
-        const response = await fetch('/api/categories?isActive=true');
+        const response = await fetch("/api/categories?isActive=true");
         if (response.ok) {
           const data = await response.json();
           setCategories(data.categories || []);
         }
       } catch (error) {
-        console.error('Error fetching categories:', error);
+        console.error("Error fetching categories:", error);
       } finally {
         setCategoriesLoading(false);
       }
@@ -187,7 +264,10 @@ const NewTourPage = () => {
     setSubmitMessage(null);
 
     if (!user) {
-      setSubmitMessage({ type: "error", text: "Authentication error. Please log in." });
+      setSubmitMessage({
+        type: "error",
+        text: "Authentication error. Please log in.",
+      });
       setIsSubmitting(false);
       return;
     }
@@ -198,7 +278,7 @@ const NewTourPage = () => {
     Object.entries(submittedData).forEach(([key, value]) => {
       const K = key as keyof TourFormData;
       if (K === "photos") return;
-      
+
       // Handle array fields
       if (Array.isArray(value)) {
         formDataToSubmit.append(K, JSON.stringify(value || []));
@@ -209,25 +289,36 @@ const NewTourPage = () => {
 
     // Handle tour photos
     if (submittedData.photos && submittedData.photos.length > 0) {
-      submittedData.photos.forEach((file) => formDataToSubmit.append("photos", file));
+      submittedData.photos.forEach((file) =>
+        formDataToSubmit.append("photos", file)
+      );
     }
 
     // DEBUG: Log what we're sending
     console.log("=== FORM DATA DEBUG ===");
     for (const [key, value] of formDataToSubmit.entries()) {
-      console.log(`${key}:`, value instanceof File ? `File: ${value.name}` : value);
+      console.log(
+        `${key}:`,
+        value instanceof File ? `File: ${value.name}` : value
+      );
     }
 
     const response = await createTourAPI(formDataToSubmit);
     if (response.success) {
-      setSubmitMessage({ type: "success", text: response.message || "Tour created successfully!" });
+      setSubmitMessage({
+        type: "success",
+        text: response.message || "Tour created successfully!",
+      });
       reset();
       // Redirect after a short delay
       setTimeout(() => {
         router.push("/admin/tours");
       }, 2000);
     } else {
-      setSubmitMessage({ type: "error", text: response.message || "Failed to create tour." });
+      setSubmitMessage({
+        type: "error",
+        text: response.message || "Failed to create tour.",
+      });
     }
     setIsSubmitting(false);
   };
@@ -247,13 +338,14 @@ const NewTourPage = () => {
             </Link>
           </Button>
         </div>
-        
+
         <h1 className="text-3xl font-bold text-gray-900">
           Create New Tour Package
         </h1>
         <div className="text-md text-gray-600 mt-1">
           <p>
-            Add a new tour package to your catalog with detailed information and beautiful photos.
+            Add a new tour package to your catalog with detailed information and
+            beautiful photos.
           </p>
         </div>
       </header>
@@ -295,7 +387,7 @@ const NewTourPage = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="shortDescription"
@@ -312,7 +404,7 @@ const NewTourPage = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="description"
@@ -346,10 +438,20 @@ const NewTourPage = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value} disabled={categoriesLoading}>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={categoriesLoading}
+                    >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder={categoriesLoading ? "Loading..." : "-- Select Category --"} />
+                          <SelectValue
+                            placeholder={
+                              categoriesLoading
+                                ? "Loading..."
+                                : "-- Select Category --"
+                            }
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -364,7 +466,7 @@ const NewTourPage = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="location"
@@ -372,16 +474,13 @@ const NewTourPage = () => {
                   <FormItem>
                     <FormLabel>Location</FormLabel>
                     <FormControl>
-                      <Input
-                        placeholder="e.g., Tokyo, Japan"
-                        {...field}
-                      />
+                      <Input placeholder="e.g., Tokyo, Japan" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="difficulty"
@@ -397,7 +496,8 @@ const NewTourPage = () => {
                       <SelectContent>
                         {DIFFICULTY_OPTIONS.map((difficulty) => (
                           <SelectItem key={difficulty} value={difficulty}>
-                            {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
+                            {difficulty.charAt(0).toUpperCase() +
+                              difficulty.slice(1)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -406,7 +506,7 @@ const NewTourPage = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="duration"
@@ -425,7 +525,7 @@ const NewTourPage = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="maxGroupSize"
@@ -444,7 +544,7 @@ const NewTourPage = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="price"
@@ -464,7 +564,7 @@ const NewTourPage = () => {
                 )}
               />
             </div>
-            
+
             <div className="mt-6">
               <FormField
                 control={control}
@@ -487,6 +587,163 @@ const NewTourPage = () => {
             </div>
           </div>
 
+          {/* Time Slots & Schedule */}
+<div className={sectionCardClassName}>
+  <h2 className={sectionTitleClassName}>Time Slots & Schedule</h2>
+  <p className={sectionDescriptionClassName}>
+    Configure when this tour operates and available time slots.
+  </p>
+  
+  <div className="space-y-6">
+    <FormField
+      control={control}
+      name="timeSlotType"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Time Slot Type</FormLabel>
+          <Select onValueChange={field.onChange} value={field.value}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select time slot type" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {TIME_SLOT_TYPES.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <FormField
+        control={control}
+        name="operatingDays"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Operating Days</FormLabel>
+            <div className="grid grid-cols-2 gap-2">
+              {DAYS_OF_WEEK.map((day) => (
+                <div key={day.value} className="flex items-center space-x-2">
+                  <Checkbox
+                    checked={field.value?.includes(day.value)}
+                    onCheckedChange={(checked) => {
+                      const updatedDays = checked
+                        ? [...(field.value || []), day.value]
+                        : field.value?.filter((d) => d !== day.value) || [];
+                      field.onChange(updatedDays);
+                    }}
+                  />
+                  <span className="text-sm">{day.label}</span>
+                </div>
+              ))}
+            </div>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={control}
+        name="advanceBookingDays"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Advance Booking (Days)</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                min="0"
+                placeholder="e.g., 1"
+                {...field}
+              />
+            </FormControl>
+            <FormDescription>
+              How many days in advance customers can book
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+    </div>
+
+    <FormField
+      control={control}
+      name="timeSlots"
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>Time Slots</FormLabel>
+          <div className="space-y-4">
+            {field.value?.map((slot, index) => (
+              <div key={index} className="grid grid-cols-4 gap-4 p-4 border rounded-lg">
+                <Input
+                  type="time"
+                  placeholder="Start Time"
+                  value={slot.startTime}
+                  onChange={(e) => {
+                    const updated = [...field.value];
+                    updated[index] = { ...slot, startTime: e.target.value };
+                    field.onChange(updated);
+                  }}
+                />
+                <Input
+                  type="time"
+                  placeholder="End Time"
+                  value={slot.endTime}
+                  onChange={(e) => {
+                    const updated = [...field.value];
+                    updated[index] = { ...slot, endTime: e.target.value };
+                    field.onChange(updated);
+                  }}
+                />
+                <Input
+                  type="number"
+                  placeholder="Max Capacity"
+                  value={slot.maxCapacity}
+                  onChange={(e) => {
+                    const updated = [...field.value];
+                    updated[index] = { ...slot, maxCapacity: parseInt(e.target.value) };
+                    field.onChange(updated);
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    const updated = field.value.filter((_, i) => i !== index);
+                    field.onChange(updated);
+                  }}
+                  disabled={field.value.length === 1}
+                >
+                  Remove
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                field.onChange([
+                  ...field.value,
+                  { startTime: "09:00", endTime: "17:00", maxCapacity: 10, isActive: true }
+                ]);
+              }}
+            >
+              Add Time Slot
+            </Button>
+          </div>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  </div>
+</div>
+
           {/* Tour Photos */}
           <div className={sectionCardClassName}>
             <h2 className={sectionTitleClassName}>Tour Photos</h2>
@@ -497,7 +754,8 @@ const NewTourPage = () => {
                 <FormItem>
                   <FormLabel>Tour Photos (Required)</FormLabel>
                   <FormDescription>
-                    Upload high-quality photos of your tour. JPG, PNG, WEBP accepted. Max 5MB each.
+                    Upload high-quality photos of your tour. JPG, PNG, WEBP
+                    accepted. Max 5MB each.
                   </FormDescription>
                   <FormControl>
                     <FilePond
@@ -550,7 +808,7 @@ const NewTourPage = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={control}
                 name="isFeatured"
