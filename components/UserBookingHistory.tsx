@@ -36,15 +36,6 @@ export default function UserBookingHistory() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Debug: Log user object changes
-  useEffect(() => {
-    console.log('User object changed:', user);
-    console.log('Has user.id:', !!user?.id);
-    console.log('User.id value:', user?.id);
-    console.log('Has user.cognitoId:', !!user?.cognitoId);
-    console.log('User.cognitoId value:', user?.cognitoId);
-  }, [user]);
-
   useEffect(() => {
     // The AuthContext provides user.id as the Cognito ID, not user.cognitoId
     const cognitoId = user?.id; // This is the correct field!

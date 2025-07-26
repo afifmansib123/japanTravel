@@ -5,6 +5,17 @@ import Category from '@/lib/model/Category';
 import TourPackage from '@/lib/model/TourPackage';
 import mongoose from 'mongoose';
 
+interface CategoryDocument {
+  _id: mongoose.Types.ObjectId;
+  name: string;
+  description?: string;
+  slug: string;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  __v: number;
+}
+
 // Force this route to be dynamic
 export const dynamic = 'force-dynamic';
 
@@ -46,7 +57,7 @@ export async function GET(
 
     // Find category
     console.log('🔍 Searching for category...');
-    const category = await Category.findById(id).lean();
+    const category = await Category.findById(id).lean() as CategoryDocument | null;
     
     if (!category) {
       console.error('❌ Category not found:', id);
@@ -128,7 +139,7 @@ export async function PUT(
     console.log('✅ Database connected successfully');
 
     // Get current category to check if name changed
-    const currentCategory = await Category.findById(id);
+    const currentCategory = await Category.findById(id) as CategoryDocument | null;
     if (!currentCategory) {
       console.error('❌ Category not found for update:', id);
       return NextResponse.json(
@@ -164,23 +175,30 @@ export async function PUT(
 
     console.log('📝 Update data:', updateData);
 
-    // Update category
-    const updatedCategory = await Category.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true, runValidators: true }
-    ).lean();
+const updatedCategory = await Category.findByIdAndUpdate(
+  id,
+  updateData,
+  { new: true, runValidators: true }
+).lean() as CategoryDocument | null;
 
-    console.log('✅ Category updated successfully');
+if (!updatedCategory) {
+  console.error('❌ Failed to update category:', id);
+  return NextResponse.json(
+    { error: 'Failed to update category' },
+    { status: 500 }
+  );
+}
 
-    // Convert to plain object
-    const categoryObj = {
-      ...updatedCategory,
-      _id: updatedCategory._id.toString(),
-    };
-    console.log('📤 Returning updated category:', categoryObj);
-    
-    return NextResponse.json(categoryObj);
+console.log('✅ Category updated successfully');
+
+// Convert to plain object
+const categoryObj = {
+  ...updatedCategory,
+  _id: updatedCategory._id.toString(),
+};
+console.log('📤 Returning updated category:', categoryObj);
+
+return NextResponse.json(categoryObj);
 
   } catch (error: any) {
     console.error('💥 Error in PUT /api/categories/[id]:', error);
@@ -250,7 +268,7 @@ export async function DELETE(
     }
 
     // Delete category
-    const deletedCategory = await Category.findByIdAndDelete(id).lean();
+    const deletedCategory = await Category.findByIdAndDelete(id).lean() as CategoryDocument | null;
 
     if (!deletedCategory) {
       console.error('❌ Category not found for deletion:', id);

@@ -38,7 +38,8 @@ const handleCheckout = async () => {
   
   try {
     // Try different possible field names for cognitoId
-    const cognitoId = user.cognitoId || user.id || user._id || user.userId;
+    // Cast user as any to bypass type checking:
+const cognitoId = (user as any).cognitoId || (user as any).id || (user as any)._id || (user as any).userId;
     
     if (!cognitoId) {
       console.error('No cognitoId found in user object:', user);
@@ -126,16 +127,16 @@ const handleCheckout = async () => {
                         <p className="text-gray-600">
                           ¥{item.price} {t("common.perPerson")}
                         </p>
-                        {item.bookingDate && (
-                          <p className="text-sm text-blue-600">
-                            📅 {new Date(item.bookingDate).toLocaleDateString()}
-                          </p>
-                        )}
-                        {item.timeSlot && (
-                          <p className="text-sm text-blue-600">
-                            🕒 {item.timeSlot}
-                          </p>
-                        )}
+                        {(item as any).bookingDate && (
+  <p className="text-sm text-blue-600">
+    📅 {new Date((item as any).bookingDate).toLocaleDateString()}
+  </p>
+)}
+{(item as any).timeSlot && (
+  <p className="text-sm text-blue-600">
+    🕒 {(item as any).timeSlot}
+  </p>
+)}
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
@@ -205,22 +206,23 @@ const handleCheckout = async () => {
                       {items.reduce((sum, item) => sum + item.quantity, 0)}
                     </span>
                   </p>
-                  {items.some((item) => item.bookingDate) && (
-                    <p className="text-sm text-gray-600">
-                      Booking Dates:{" "}
-                      <span className="font-semibold">
-                        {Array.from(
-                          new Set(
-                            items
-                              .map((item) => item.bookingDate)
-                              .filter(Boolean)
-                          )
-                        )
-                          .map((date) => new Date(date!).toLocaleDateString())
-                          .join(", ")}
-                      </span>
-                    </p>
-                  )}
+                  {items.some((item) => (item as any).bookingDate) && (
+  <p className="text-sm text-gray-600">
+    Booking Dates:{" "}
+    <span className="font-semibold">
+      {Array.from(
+        new Set(
+          items
+            .map((item) => (item as any).bookingDate)
+            .filter(Boolean)
+        )
+      )
+        .map((date) => new Date(date!).toLocaleDateString())
+        .join(", ")}
+    </span>
+  </p>
+)}
+
                 </div>
               </CardContent>
             </Card>

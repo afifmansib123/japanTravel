@@ -54,9 +54,6 @@ export async function GET(
       );
     }
 
-    console.log("✅ Tour package found:", tourPackage.name);
-
-    console.log("📤 Returning tour package");
 
     return NextResponse.json(tourPackage);
   } catch (error: any) {
@@ -201,10 +198,6 @@ export async function DELETE(
       );
     }
 
-    console.log(
-      "✅ Tour package deleted successfully:",
-      deletedTourPackage.name
-    );
 
     return NextResponse.json({
       message: "Tour package deleted successfully",

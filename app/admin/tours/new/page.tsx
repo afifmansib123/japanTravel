@@ -63,7 +63,7 @@ const DAYS_OF_WEEK = [
   { value: "friday", label: "Friday" },
   { value: "saturday", label: "Saturday" },
   { value: "sunday", label: "Sunday" }
-];
+] as const;
 
 interface Category {
   _id: string;
@@ -294,14 +294,6 @@ const NewTourPage = () => {
       );
     }
 
-    // DEBUG: Log what we're sending
-    console.log("=== FORM DATA DEBUG ===");
-    for (const [key, value] of formDataToSubmit.entries()) {
-      console.log(
-        `${key}:`,
-        value instanceof File ? `File: ${value.name}` : value
-      );
-    }
 
     const response = await createTourAPI(formDataToSubmit);
     if (response.success) {
@@ -567,23 +559,28 @@ const NewTourPage = () => {
 
             <div className="mt-6">
               <FormField
-                control={control}
-                name="discountedPrice"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Discounted Price (Optional)</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="0"
-                        placeholder="e.g., 20000"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+  control={control}
+  name="discountedPrice"
+  render={({ field }) => (
+    <FormItem>
+      <FormLabel>Discounted Price (Optional)</FormLabel>
+      <FormControl>
+        <Input
+          type="number"
+          min="0"
+          placeholder="e.g., 20000"
+          {...field}
+          value={field.value ?? ""} // Convert null/undefined to empty string
+          onChange={(e) => {
+            const value = e.target.value;
+            field.onChange(value === "" ? null : Number(value));
+          }}
+        />
+      </FormControl>
+      <FormMessage />
+    </FormItem>
+  )}
+/>
             </div>
           </div>
 

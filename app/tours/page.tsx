@@ -115,7 +115,7 @@ export default function ToursPage() {
 
   const handleAddToCart = (tour: Tour) => {
     addItem({
-      id: tour._id,
+      id: tour._id as any,
       name: tour.name,
       price: tour.price,
       // Use the first image from the images array

@@ -100,7 +100,74 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
   startIndex,
   onClose,
 }) => {
-  // ... (no changes needed here)
+  const [currentIndex, setCurrentIndex] = useState(startIndex);
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % images.length);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+      if (e.key === 'ArrowLeft') goToPrevious();
+      if (e.key === 'ArrowRight') goToNext();
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'unset';
+    };
+  }, []);
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+      <button
+        onClick={onClose}
+        className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+      >
+        <X className="w-8 h-8" />
+      </button>
+
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={goToPrevious}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10"
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
+          <button
+            onClick={goToNext}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10"
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
+        </>
+      )}
+
+      <div className="relative max-w-[90vw] max-h-[90vh]">
+        <Image
+          src={images[currentIndex]}
+          alt={`Image ${currentIndex + 1} of ${images.length}`}
+          width={1200}
+          height={800}
+          className="max-w-full max-h-full object-contain"
+          priority
+        />
+      </div>
+
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-black bg-opacity-50 px-3 py-1 rounded">
+        {currentIndex + 1} / {images.length}
+      </div>
+    </div>
+  );
 };
 
 const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
@@ -438,7 +505,7 @@ const TourDetailView: React.FC = () => {
         tourId: tour._id,
       };
 
-      addItem(bookingDetails);
+      addItem(bookingDetails as any);
     });
 
     toast.success(`${selections.length} booking(s) added to cart!`);

@@ -231,7 +231,7 @@ export default function HomePage() {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            variants={slideVariants}
+            variants={slideVariants as any}
             initial="enter"
             animate="center"
             exit="exit"
@@ -253,7 +253,7 @@ export default function HomePage() {
                       left: `${Math.random() * 100}%`,
                       top: `${Math.random() * 100}%`,
                     }}
-                    variants={floatingVariants}
+                    variants={floatingVariants as any}
                     animate="floating"
                     transition={{
                       delay: i * 0.5,
@@ -268,7 +268,7 @@ export default function HomePage() {
               <div className="absolute inset-0 flex items-center justify-center text-center text-white">
                 <motion.div 
                   className="max-w-4xl px-4"
-                  variants={itemVariants}
+                  variants={itemVariants as any}
                 >
                   <motion.h1 
                     className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent"
@@ -373,19 +373,19 @@ export default function HomePage() {
           />
           <motion.div 
             className="absolute top-40 right-20 w-24 h-24 rounded-full bg-purple-300"
-            variants={floatingVariants}
+            variants={floatingVariants as any}
             animate="floating"
           />
           <motion.div 
             className="absolute bottom-20 left-1/3 w-20 h-20 rounded-full bg-blue-300"
-            variants={floatingVariants}
+            variants={floatingVariants as any}
             animate="floating"
             transition={{ delay: 1 }}
           />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 relative z-10">
-          <motion.div className="text-center mb-12" variants={itemVariants}>
+          <motion.div className="text-center mb-12" variants={itemVariants as any}>
             <motion.h2 
               className="text-4xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 bg-clip-text text-transparent"
               initial={{ scale: 0.8, opacity: 0 }}
@@ -416,7 +416,7 @@ export default function HomePage() {
             {featuredTours.map((tour, index) => (
               <motion.div
                 key={tour.id}
-                variants={cardVariants}
+                variants={cardVariants as any}
                 whileHover="hover"
                 transition={{ delay: index * 0.1 }}
               >
@@ -519,7 +519,7 @@ export default function HomePage() {
         
         <div className="max-w-7xl mx-auto px-4 relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
-            <motion.div variants={itemVariants}>
+            <motion.div variants={itemVariants as any}>
               <motion.h2 
                 className="text-4xl font-bold text-gray-900 mb-6 bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent"
                 initial={{ x: -50, opacity: 0 }}
@@ -575,7 +575,7 @@ export default function HomePage() {
             </motion.div>
             <motion.div 
               className="relative"
-              variants={itemVariants}
+              variants={itemVariants as any}
               initial={{ x: 50, opacity: 0 }}
               whileInView={{ x: 0, opacity: 1 }}
               viewport={{ once: true }}
@@ -595,7 +595,7 @@ export default function HomePage() {
                 {/* Floating elements */}
                 <motion.div 
                   className="absolute -top-4 -right-4 glass-effect p-3 rounded-full"
-                  variants={floatingVariants}
+                  variants={floatingVariants as any}
                   animate="floating"
                   whileHover={{ scale: 1.2 }}
                 >
@@ -603,7 +603,7 @@ export default function HomePage() {
                 </motion.div>
                 <motion.div 
                   className="absolute -bottom-4 -left-4 glass-effect p-3 rounded-full"
-                  variants={floatingVariants}
+                  variants={floatingVariants as any}
                   animate="floating"
                   transition={{ delay: 1 }}
                   whileHover={{ scale: 1.2 }}
@@ -637,7 +637,7 @@ export default function HomePage() {
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
               }}
-              variants={floatingVariants}
+              variants={floatingVariants as any}
               animate="floating"
               transition={{
                 delay: i * 0.7,
@@ -650,7 +650,7 @@ export default function HomePage() {
         <div className="max-w-4xl mx-auto text-center px-4 relative z-10 text-white">
           <motion.h2 
             className="text-4xl font-bold mb-6"
-            variants={itemVariants}
+            variants={itemVariants as any}
             initial={{ scale: 0.8, opacity: 0 }}
             whileInView={{ scale: 1, opacity: 1 }}
             viewport={{ once: true }}
@@ -659,7 +659,7 @@ export default function HomePage() {
           </motion.h2>
           <motion.p 
             className="text-xl mb-8"
-            variants={itemVariants}
+            variants={itemVariants as any}
             initial={{ y: 30, opacity: 0 }}
             whileInView={{ y: 0, opacity: 1 }}
             viewport={{ once: true }}
@@ -678,7 +678,7 @@ export default function HomePage() {
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
               whileTap={{ scale: 0.95 }}
-              variants={itemVariants}
+              variants={itemVariants as any}
             >
               <Button 
                 asChild 
@@ -699,7 +699,7 @@ export default function HomePage() {
             <motion.div
               whileHover={{ scale: 1.05, y: -5 }}
               whileTap={{ scale: 0.95 }}
-              variants={itemVariants}
+              variants={itemVariants as any}
             >
               <Button 
                 asChild 

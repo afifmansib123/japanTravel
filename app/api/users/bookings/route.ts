@@ -9,6 +9,20 @@ import Category from '@/lib/model/Category';
 export const dynamic = 'force-dynamic';
 
 // GET - Fetch user bookings (using exact same pattern as categories API)
+
+interface TourDocument {
+  _id: any;
+  name: string;
+  category: any;
+  timeSlots?: any[];
+  [key: string]: any;
+}
+
+interface CategoryDocument {
+  _id: any;
+  name: string;
+  [key: string]: any;
+}
 export async function GET(request: NextRequest) {
   console.log('🚀 GET /api/user/bookings - Starting...');
   
@@ -42,15 +56,15 @@ export async function GET(request: NextRequest) {
     // Get tour details separately for each booking
     const bookingsWithTours = [];
     
-    for (const booking of bookings) {
+    for (const booking of bookings as any[]) {
       try {
         console.log('🔍 Fetching tour for booking:', booking._id);
         
-        const tour = await TourPackage.findById(booking.tourId).lean();
+        const tour = await TourPackage.findById(booking.tourId).lean() as TourDocument | null;
         
         if (tour) {
           // Get category info
-          const category = await Category.findById(tour.category).lean();
+          const category = await Category.findById(tour.category).lean() as CategoryDocument | null;
           
           // Get time slot info
           const timeSlot = tour.timeSlots?.[booking.timeSlotIndex];

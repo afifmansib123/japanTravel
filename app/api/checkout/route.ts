@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       const bookingDate = new Date(item.bookingDate);
       
       // Find the timeSlotIndex from the timeSlot string
-      const timeSlotIndex = tour.timeSlots.findIndex(slot => 
+      const timeSlotIndex = tour.timeSlots.findIndex((slot : any) => 
         `${slot.startTime}-${slot.endTime}` === item.timeSlot
       );
       

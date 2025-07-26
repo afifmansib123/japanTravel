@@ -52,7 +52,7 @@ export async function GET(
 
 const availability: {[key: number]: number} = {};
 
-tour.timeSlots.forEach((slot, index) => {
+tour.timeSlots.forEach((slot : any, index : number) => {
   // Check if ANY booking exists for this time slot
   const hasBooking = bookings.some(booking => booking.timeSlotIndex === index);
   
