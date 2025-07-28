@@ -226,12 +226,6 @@ export default function ToursPage() {
                       {t("tours.viewDetails")}
                     </Link>
                   </Button>
-                  <Button
-                    onClick={() => handleAddToCart(tour)}
-                    className="flex-1"
-                  >
-                    {t("tours.addToCart")}
-                  </Button>
                 </div>
               </CardContent>
             </Card>

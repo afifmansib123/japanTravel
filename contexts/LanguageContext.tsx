@@ -182,7 +182,8 @@ const translations = {
     "admin.dashboard.averagePrice": "Average Price",
     "admin.dashboard.active": "active",
     "admin.dashboard.toursByCategory": "Tours by Category",
-    "admin.dashboard.toursByCategoryDesc": "Distribution of tours across categories",
+    "admin.dashboard.toursByCategoryDesc":
+      "Distribution of tours across categories",
     "admin.dashboard.toursByDifficulty": "Tours by Difficulty",
     "admin.dashboard.toursByDifficultyDesc": "Breakdown by difficulty level",
     "admin.dashboard.recentTours": "Recent Tours",
@@ -263,7 +264,7 @@ const translations = {
     "admin.common.required": "Required",
     "admin.common.optional": "Optional",
 
-        "tourDetail.back": "Back to Tours",
+    "tourDetail.back": "Back to Tours",
     "tourDetail.loading": "Loading tour...",
     "tourDetail.error": "Error",
     "tourDetail.notFound": "Tour not found.",
@@ -273,7 +274,8 @@ const translations = {
     "tourDetail.about": "About The Tour",
     "tourDetail.highlights": "Tour Highlights",
     "tourDetail.itinerary": "Itinerary",
-    "tourDetail.itineraryNotAvailable": "Detailed itinerary information is not available for this tour.",
+    "tourDetail.itineraryNotAvailable":
+      "Detailed itinerary information is not available for this tour.",
     "tourDetail.whatsIncluded": "What's Included",
     "tourDetail.inclusions": "Inclusions",
     "tourDetail.exclusions": "Exclusions",
@@ -282,7 +284,7 @@ const translations = {
     "tourDetail.askQuestion": "Ask a Question",
     "tourDetail.bookWithConfidence": "Book with confidence.",
     "tourDetail.securePayments": "Secure payments & 24/7 support.",
-    "tourDetail.day": "Day" 
+    "tourDetail.day": "Day",
   },
   zh: {
     // Navigation
@@ -380,30 +382,30 @@ const translations = {
     "toast.createAccountFailed": "创建账户失败",
     "toast.signInFailed": "登录失败",
 
-     "auth.signin.title": "欢迎回来",
-  "auth.signin.subtitle": "登录您的账户", 
-  "auth.signin.email": "邮箱",
-  "auth.signin.password": "密码",
-  "auth.signin.button": "登录",
-  "auth.signin.noAccount": "没有账户？",
-  "auth.signin.demo": "演示账户：",
-  "auth.signup.title": "创建账户",
-  "auth.signup.subtitle": "加入漫游冒险",
-  "auth.signup.name": "全名",
-  "auth.signup.confirmPassword": "确认密码",
-  "auth.signup.button": "创建账户",
-  "auth.signup.hasAccount": "已有账户？",
+    "auth.signin.title": "欢迎回来",
+    "auth.signin.subtitle": "登录您的账户",
+    "auth.signin.email": "邮箱",
+    "auth.signin.password": "密码",
+    "auth.signin.button": "登录",
+    "auth.signin.noAccount": "没有账户？",
+    "auth.signin.demo": "演示账户：",
+    "auth.signup.title": "创建账户",
+    "auth.signup.subtitle": "加入漫游冒险",
+    "auth.signup.name": "全名",
+    "auth.signup.confirmPassword": "确认密码",
+    "auth.signup.button": "创建账户",
+    "auth.signup.hasAccount": "已有账户？",
 
-  // Common - MISSING FROM YOUR CURRENT zh TRANSLATIONS
-  "common.loading": "加载中...",
-  "common.perPerson": "每人",
-  "common.days": "天",
-  "common.rating": "评分",
-  "common.features": "特色",
-  "common.location": "位置",
-  "common.duration": "持续时间",
-  "common.price": "价格",
-  "admin.title": "ツアー管理",
+    // Common - MISSING FROM YOUR CURRENT zh TRANSLATIONS
+    "common.loading": "加载中...",
+    "common.perPerson": "每人",
+    "common.days": "天",
+    "common.rating": "评分",
+    "common.features": "特色",
+    "common.location": "位置",
+    "common.duration": "持续时间",
+    "common.price": "价格",
+    "admin.title": "ツアー管理",
     "admin.subtitle": "管理パネル",
     "admin.nav.dashboard": "ダッシュボード",
     "admin.nav.categories": "カテゴリ",
@@ -516,7 +518,7 @@ const translations = {
     "admin.common.required": "必須",
     "admin.common.optional": "オプション",
 
-        "tourDetail.back": "返回旅游列表",
+    "tourDetail.back": "返回旅游列表",
     "tourDetail.loading": "正在加载旅游...",
     "tourDetail.error": "错误",
     "tourDetail.notFound": "未找到旅游。",
@@ -535,7 +537,18 @@ const translations = {
     "tourDetail.askQuestion": "提问",
     "tourDetail.bookWithConfidence": "放心预订。",
     "tourDetail.securePayments": "安全支付 & 24/7 支持。",
-    "tourDetail.day": "第" 
+    "tourDetail.day": "第",
+
+    //missing home page translation
+
+    "home.features.expertGuides": "专业本地导游",
+    "home.features.expertGuidesDesc":
+      "我们热情的本地导游分享内部知识和隐藏的宝石",
+    "home.features.premiumQuality": "优质品质",
+    "home.features.premiumQualityDesc":
+      "精心挑选的住宿和交通，为您提供舒适体验",
+    "home.features.uniqueDestinations": "独特目的地",
+    "home.features.uniqueDestinationsDesc": "从热门景点到人迹罕至的冒险之旅",
   },
   ja: {
     // Navigation
@@ -605,61 +618,65 @@ const translations = {
     "cart.processing": "処理中...",
 
     // Japanese translations
-    'auth.signup.fullNamePlaceholder': 'フルネームを入力',
-    'auth.signup.emailPlaceholder': 'メールアドレスを入力',
-    'auth.signup.passwordPlaceholder': '強力なパスワードを作成',
-    'auth.signup.confirmPasswordPlaceholder': 'パスワードを確認',
-    'auth.signup.passwordRequirements': '8文字以上で大文字、小文字、数字を含む必要があります',
-    'auth.signup.accountType': 'アカウントタイプ',
-    'auth.signup.user': 'ユーザー',
-    'auth.signup.admin': '管理者',
-    'auth.signup.creating': 'アカウント作成中...',
-    
-    'auth.signin.emailPlaceholder': 'メールアドレスを入力',
-    'auth.signin.passwordPlaceholder': 'パスワードを入力',
-    'auth.signin.signingIn': 'サインイン中...',
-    'auth.signin.demoAccount': 'デモアカウント',
-    'auth.signin.demoDesc1': '認証フローをテストするために新しいアカウントを作成',
-    'auth.signin.demoDesc2': '確認コードがメールに送信されます',
-    
+    "auth.signup.fullNamePlaceholder": "フルネームを入力",
+    "auth.signup.emailPlaceholder": "メールアドレスを入力",
+    "auth.signup.passwordPlaceholder": "強力なパスワードを作成",
+    "auth.signup.confirmPasswordPlaceholder": "パスワードを確認",
+    "auth.signup.passwordRequirements":
+      "8文字以上で大文字、小文字、数字を含む必要があります",
+    "auth.signup.accountType": "アカウントタイプ",
+    "auth.signup.user": "ユーザー",
+    "auth.signup.admin": "管理者",
+    "auth.signup.creating": "アカウント作成中...",
+
+    "auth.signin.emailPlaceholder": "メールアドレスを入力",
+    "auth.signin.passwordPlaceholder": "パスワードを入力",
+    "auth.signin.signingIn": "サインイン中...",
+    "auth.signin.demoAccount": "デモアカウント",
+    "auth.signin.demoDesc1":
+      "認証フローをテストするために新しいアカウントを作成",
+    "auth.signin.demoDesc2": "確認コードがメールに送信されます",
+
     // Toast messages
-    'toast.passwordMismatch': 'パスワードが一致しません',
-    'toast.passwordTooShort': 'パスワードは8文字以上である必要があります',
-    'toast.passwordWeak': 'パスワードは大文字、小文字、数字を含む必要があります',
-    'toast.accountCreated': 'アカウントが作成されました！確認コードのメールをチェックしてください。',
-    'toast.accountSuccess': 'アカウントが正常に作成されました！',
-    'toast.signInSuccess': 'サインインに成功しました！',
-    'toast.verifyEmail': '最初にメールを確認してください',
-    'toast.invalidCredentials': 'メールまたはパスワードが無効です',
-    'toast.userNotFound': 'このメールのアカウントが見つかりません',
-    'toast.createAccountFailed': 'アカウント作成に失敗しました',
-    'toast.signInFailed': 'サインインに失敗しました',
+    "toast.passwordMismatch": "パスワードが一致しません",
+    "toast.passwordTooShort": "パスワードは8文字以上である必要があります",
+    "toast.passwordWeak":
+      "パスワードは大文字、小文字、数字を含む必要があります",
+    "toast.accountCreated":
+      "アカウントが作成されました！確認コードのメールをチェックしてください。",
+    "toast.accountSuccess": "アカウントが正常に作成されました！",
+    "toast.signInSuccess": "サインインに成功しました！",
+    "toast.verifyEmail": "最初にメールを確認してください",
+    "toast.invalidCredentials": "メールまたはパスワードが無効です",
+    "toast.userNotFound": "このメールのアカウントが見つかりません",
+    "toast.createAccountFailed": "アカウント作成に失敗しました",
+    "toast.signInFailed": "サインインに失敗しました",
 
     "auth.signin.title": "おかえりなさい",
-  "auth.signin.subtitle": "アカウントにサインイン",
-  "auth.signin.email": "メール",
-  "auth.signin.password": "パスワード", 
-  "auth.signin.button": "サインイン",
-  "auth.signin.noAccount": "アカウントをお持ちでないですか？",
-  "auth.signin.demo": "デモアカウント：",
-  "auth.signup.title": "アカウント作成",
-  "auth.signup.subtitle": "ワンダーラスト・アドベンチャーズに参加",
-  "auth.signup.name": "フルネーム",
-  "auth.signup.confirmPassword": "パスワード確認",
-  "auth.signup.button": "アカウント作成",
-  "auth.signup.hasAccount": "すでにアカウントをお持ちですか？",
+    "auth.signin.subtitle": "アカウントにサインイン",
+    "auth.signin.email": "メール",
+    "auth.signin.password": "パスワード",
+    "auth.signin.button": "サインイン",
+    "auth.signin.noAccount": "アカウントをお持ちでないですか？",
+    "auth.signin.demo": "デモアカウント：",
+    "auth.signup.title": "アカウント作成",
+    "auth.signup.subtitle": "ワンダーラスト・アドベンチャーズに参加",
+    "auth.signup.name": "フルネーム",
+    "auth.signup.confirmPassword": "パスワード確認",
+    "auth.signup.button": "アカウント作成",
+    "auth.signup.hasAccount": "すでにアカウントをお持ちですか？",
 
-  // Common - MISSING FROM YOUR CURRENT ja TRANSLATIONS  
-  "common.loading": "読み込み中...",
-  "common.perPerson": "一人当たり",
-  "common.days": "日",
-  "common.rating": "評価",
-  "common.features": "特徴",
-  "common.location": "場所",
-  "common.duration": "期間",
-  "common.price": "価格",
+    // Common - MISSING FROM YOUR CURRENT ja TRANSLATIONS
+    "common.loading": "読み込み中...",
+    "common.perPerson": "一人当たり",
+    "common.days": "日",
+    "common.rating": "評価",
+    "common.features": "特徴",
+    "common.location": "場所",
+    "common.duration": "期間",
+    "common.price": "価格",
 
-  "admin.title": "旅游管理",
+    "admin.title": "旅游管理",
     "admin.subtitle": "管理面板",
     "admin.nav.dashboard": "仪表板",
     "admin.nav.categories": "分类",
@@ -772,7 +789,7 @@ const translations = {
     "admin.common.required": "必填",
     "admin.common.optional": "可选",
 
-        "tourDetail.back": "ツアー一覧へ戻る",
+    "tourDetail.back": "ツアー一覧へ戻る",
     "tourDetail.loading": "ツアーを読み込み中...",
     "tourDetail.error": "エラー",
     "tourDetail.notFound": "ツアーが見つかりません。",
@@ -782,7 +799,8 @@ const translations = {
     "tourDetail.about": "このツアーについて",
     "tourDetail.highlights": "ツアーのハイライト",
     "tourDetail.itinerary": "旅程",
-    "tourDetail.itineraryNotAvailable": "このツアーの詳細な旅程情報はありません。",
+    "tourDetail.itineraryNotAvailable":
+      "このツアーの詳細な旅程情報はありません。",
     "tourDetail.whatsIncluded": "含まれるもの",
     "tourDetail.inclusions": "含まれるもの",
     "tourDetail.exclusions": "含まれないもの",
@@ -791,8 +809,18 @@ const translations = {
     "tourDetail.askQuestion": "質問する",
     "tourDetail.bookWithConfidence": "安心してご予約ください。",
     "tourDetail.securePayments": "安全な支払い＆年中無休のサポート。",
-    "tourDetail.day": "日目" // For the itinerary
+    "tourDetail.day": "日目", // For the itinerary
 
+    //missing in home page
+
+    "home.features.expertGuides": "専門現地ガイド",
+    "home.features.expertGuidesDesc":
+      "情熱的な現地ガイドが内部の知識と隠れた宝石を共有します",
+    "home.features.premiumQuality": "プレミアム品質",
+    "home.features.premiumQualityDesc":
+      "快適さのために厳選された宿泊施設と交通手段",
+    "home.features.uniqueDestinations": "ユニークな目的地",
+    "home.features.uniqueDestinationsDesc": "人気スポットから人里離れた冒険まで",
   },
 };
 

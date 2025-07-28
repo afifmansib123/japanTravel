@@ -112,17 +112,17 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-      if (e.key === 'ArrowLeft') goToPrevious();
-      if (e.key === 'ArrowRight') goToNext();
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowLeft") goToPrevious();
+      if (e.key === "ArrowRight") goToNext();
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    document.body.style.overflow = 'hidden';
+    document.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'unset';
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
     };
   }, []);
 
@@ -180,9 +180,10 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
   const [selections, setSelections] = useState<BookingSelection[]>([]);
   const { t } = useLanguage();
 
-
-  const [availabilityData, setAvailabilityData] = useState<{[key: string]: number}>({});
-const [loadingAvailability, setLoadingAvailability] = useState(false);
+  const [availabilityData, setAvailabilityData] = useState<{
+    [key: string]: number;
+  }>({});
+  const [loadingAvailability, setLoadingAvailability] = useState(false);
 
   const getAvailableDates = () => {
     const today = new Date();
@@ -192,7 +193,9 @@ const [loadingAvailability, setLoadingAvailability] = useState(false);
     const availableDates: Date[] = [];
 
     for (let d = new Date(today); d <= maxDate; d.setDate(d.getDate() + 1)) {
-      const dayName = d.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+      const dayName = d
+        .toLocaleDateString("en-US", { weekday: "long" })
+        .toLowerCase();
       if (tour.operatingDays.includes(dayName)) {
         const checkDate = new Date(d);
         checkDate.setDate(checkDate.getDate() - tour.advanceBookingDays);
@@ -205,29 +208,31 @@ const [loadingAvailability, setLoadingAvailability] = useState(false);
   };
 
   const checkAvailability = async (date: Date) => {
-  if (!date) return;
-  
-  setLoadingAvailability(true);
-  try {
-    const dateString = date.toISOString().split('T')[0];
-    const response = await fetch(`/api/tours/${tour._id}/availability?date=${dateString}`);
-    const data = await response.json();
-    
-    if (response.ok) {
-      setAvailabilityData(data.availability);
-    }
-  } catch (error) {
-    console.error('Error checking availability:', error);
-  } finally {
-    setLoadingAvailability(false);
-  }
-};
+    if (!date) return;
 
-useEffect(() => {
-  if (selectedDate) {
-    checkAvailability(selectedDate);
-  }
-}, [selectedDate]);
+    setLoadingAvailability(true);
+    try {
+      const dateString = date.toISOString().split("T")[0];
+      const response = await fetch(
+        `/api/tours/${tour._id}/availability?date=${dateString}`
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        setAvailabilityData(data.availability);
+      }
+    } catch (error) {
+      console.error("Error checking availability:", error);
+    } finally {
+      setLoadingAvailability(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedDate) {
+      checkAvailability(selectedDate);
+    }
+  }, [selectedDate]);
 
   const formatTimeSlot = (timeSlot: any) => {
     return `${timeSlot.startTime} - ${timeSlot.endTime}`;
@@ -237,6 +242,11 @@ useEffect(() => {
     if (!selectedDate) return;
 
     const dateString = selectedDate.toISOString().split("T")[0];
+    const currentPrice =
+      tour.discountedPrice && tour.discountedPrice < tour.price
+        ? tour.discountedPrice
+        : tour.price;
+
     const existingIndex = selections.findIndex(
       (s) => s.date === dateString && s.timeSlotIndex === timeSlotIndex
     );
@@ -245,7 +255,7 @@ useEffect(() => {
       const updated = [...selections];
       updated[existingIndex].quantity += 1;
       updated[existingIndex].totalPrice =
-        updated[existingIndex].quantity * tour.price;
+        updated[existingIndex].quantity * currentPrice;
       setSelections(updated);
     } else {
       setSelections([
@@ -254,7 +264,7 @@ useEffect(() => {
           date: dateString,
           timeSlotIndex,
           quantity: 1,
-          totalPrice: tour.price,
+          totalPrice: currentPrice,
         },
       ]);
     }
@@ -262,8 +272,13 @@ useEffect(() => {
 
   const updateQuantity = (index: number, change: number) => {
     const updated = [...selections];
+    const currentPrice =
+      tour.discountedPrice && tour.discountedPrice < tour.price
+        ? tour.discountedPrice
+        : tour.price;
+
     updated[index].quantity = Math.max(0, updated[index].quantity + change);
-    updated[index].totalPrice = updated[index].quantity * tour.price;
+    updated[index].totalPrice = updated[index].quantity * currentPrice;
 
     if (updated[index].quantity === 0) {
       updated.splice(index, 1);
@@ -313,53 +328,91 @@ useEffect(() => {
           </div>
 
           {/* Time Slots */}
-{/* Time Slots */}
-<div>
-  <h3 className="font-semibold mb-4">Available Time Slots</h3>
-  {selectedDate ? (
-    <div className="space-y-3">
-      {loadingAvailability ? (
-        <p className="text-gray-500">Checking availability...</p>
-      ) : (
-       tour.timeSlots.filter(slot => slot.isActive).map((timeSlot, index) => {
-  const bookedQuantity = availabilityData[index] || 0;
-  const isFullyBooked = bookedQuantity >= timeSlot.maxCapacity; // Any booking = fully booked
-  const availableSpots = isFullyBooked ? 0 : timeSlot.maxCapacity;
+          {/* Time Slots */}
+          <div>
+            <h3 className="font-semibold mb-4">Available Time Slots</h3>
+            {selectedDate ? (
+              <div className="space-y-3">
+                {loadingAvailability ? (
+                  <p className="text-gray-500">Checking availability...</p>
+                ) : (
+                  tour.timeSlots
+                    .filter((slot) => slot.isActive)
+                    .map((timeSlot, index) => {
+                      const bookedQuantity = availabilityData[index] || 0;
+                      const isFullyBooked =
+                        bookedQuantity >= timeSlot.maxCapacity;
+                      const currentPrice =
+                        tour.discountedPrice &&
+                        tour.discountedPrice < tour.price
+                          ? tour.discountedPrice
+                          : tour.price;
 
-  return (
-    <div key={index} className={`p-3 border rounded-lg ${isFullyBooked ? 'bg-gray-100 opacity-50' : 'hover:bg-gray-50'}`}>
-      <div className="flex justify-between items-center">
-        <div>
-          <div className="font-medium">{formatTimeSlot(timeSlot)}</div>
-          <div className="text-sm text-gray-600">
-            {isFullyBooked ? (
-              <span className="text-red-600 font-medium">Fully Booked</span>
+                      return (
+                        <div
+                          key={index}
+                          className={`p-3 border rounded-lg ${
+                            isFullyBooked
+                              ? "bg-gray-100 opacity-50"
+                              : "hover:bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <div className="font-medium">
+                                {formatTimeSlot(timeSlot)}
+                              </div>
+                              <div className="text-sm text-gray-600">
+                                {isFullyBooked ? (
+                                  <span className="text-red-600 font-medium">
+                                    Fully Booked
+                                  </span>
+                                ) : (
+                                  <span className="text-green-600 font-medium">
+                                    Available
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm font-medium">
+                                {tour.discountedPrice &&
+                                tour.discountedPrice < tour.price ? (
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-gray-500 line-through text-xs">
+                                      {formatPrice(tour.price)}
+                                    </span>
+                                    <span className="text-red-600 font-bold">
+                                      {formatPrice(tour.discountedPrice)}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-blue-600">
+                                    {formatPrice(tour.price)}
+                                  </span>
+                                )}
+                                <span className="text-gray-500">
+                                  {" "}
+                                  per person
+                                </span>
+                              </div>
+                            </div>
+                            <Button
+                              onClick={() => addSelection(index)}
+                              size="sm"
+                              className="ml-2"
+                              disabled={isFullyBooked}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })
+                )}
+              </div>
             ) : (
-              <span className="text-green-600 font-medium">Available</span>
+              <p className="text-gray-500">Please select a date first</p>
             )}
           </div>
-          <div className="text-sm font-medium text-blue-600">
-            {formatPrice(tour.price)} per person
-          </div>
-        </div>
-        <Button
-          onClick={() => addSelection(index)}
-          size="sm"
-          className="ml-2"
-          disabled={isFullyBooked}
-        >
-          <Plus className="w-4 h-4" />
-        </Button>
-      </div>
-    </div>
-  );
-})
-      )}
-    </div>
-  ) : (
-    <p className="text-gray-500">Please select a date first</p>
-  )}
-</div>
         </div>
 
         {/* Selected Items */}
@@ -492,17 +545,25 @@ const TourDetailView: React.FC = () => {
   const handleTimeSlotConfirm = (selections: BookingSelection[]) => {
     if (!tour) return;
 
+    const currentPrice =
+      tour.discountedPrice && tour.discountedPrice < tour.price
+        ? tour.discountedPrice
+        : tour.price;
+
     selections.forEach((selection) => {
       const timeSlot = tour.timeSlots[selection.timeSlotIndex];
       const bookingDetails = {
         id: `${tour._id}-${selection.date}-${selection.timeSlotIndex}`,
         name: `${tour.name} - ${selection.date} (${timeSlot.startTime}-${timeSlot.endTime})`,
-        price: selection.totalPrice,
+        price: currentPrice, // Use discounted price if available
+        originalPrice: tour.price, // Store original price for reference
+        discountedPrice: tour.discountedPrice || null,
         quantity: selection.quantity,
         image: tour.images[0],
         bookingDate: selection.date,
         timeSlot: `${timeSlot.startTime}-${timeSlot.endTime}`,
         tourId: tour._id,
+        currency: tour.currency,
       };
 
       addItem(bookingDetails as any);
@@ -660,8 +721,31 @@ const TourDetailView: React.FC = () => {
                     <span>{tour.location}</span>
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-blue-600">
-                  {formatPrice(tour.price, tour.currency)}
+
+                {/* UPDATED PRICE DISPLAY */}
+                <div className="text-right">
+                  {tour.discountedPrice && tour.discountedPrice < tour.price ? (
+                    <div>
+                      <div className="text-lg text-gray-500 line-through">
+                        {formatPrice(tour.price, tour.currency)}
+                      </div>
+                      <div className="text-3xl font-bold text-red-600">
+                        {formatPrice(tour.discountedPrice, tour.currency)}
+                      </div>
+                      <div className="text-sm text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full mt-1">
+                        Save{" "}
+                        {formatPrice(
+                          tour.price - tour.discountedPrice,
+                          tour.currency
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-3xl font-bold text-blue-600">
+                      {formatPrice(tour.price, tour.currency)}
+                    </div>
+                  )}
+                  <div className="text-sm text-gray-600 mt-1">per person</div>
                 </div>
               </div>
 
@@ -713,6 +797,7 @@ const TourDetailView: React.FC = () => {
                   </TabsTrigger>
                 </TabsList>
 
+                {/* SCHEDULE TAB */}
                 <TabsContent value="schedule" className="mt-6">
                   <h4 className="font-semibold text-lg text-gray-900 mb-3">
                     Schedule & Availability
@@ -770,41 +855,59 @@ const TourDetailView: React.FC = () => {
                     </p>
                   </div>
                 </TabsContent>
-              </Tabs>
 
-              <Tabs defaultValue="description" className="w-full">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="description">
-                    {t("tourDetail.about")}
-                  </TabsTrigger>
-                  <TabsTrigger value="itinerary">
-                    {t("tourDetail.itinerary")}
-                  </TabsTrigger>
-                  <TabsTrigger value="details">
-                    {t("tourDetail.whatsIncluded")}
-                  </TabsTrigger>
-                </TabsList>
-
+                {/* DESCRIPTION TAB */}
                 <TabsContent value="description" className="mt-6">
                   <h4 className="font-semibold text-lg text-gray-900 mb-3">
                     {t("tourDetail.about")}
                   </h4>
-                  <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                    {tour.description}
-                  </p>
 
-                  {tour.highlights.length > 0 && (
+                  {/* Main Description */}
+                  <div className="mb-6">
+                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
+                      {tour.description ||
+                        "No detailed description available for this tour."}
+                    </p>
+                  </div>
+
+                  {/* Short Description if available */}
+                  {tour.shortDescription && (
+                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                      <h5 className="font-medium text-blue-900 mb-2">
+                        Quick Overview
+                      </h5>
+                      <p className="text-blue-800">{tour.shortDescription}</p>
+                    </div>
+                  )}
+
+                  {/* Highlights Section - Only show if data exists */}
+                  {tour.highlights && tour.highlights.length > 0 ? (
                     <div className="mt-6">
                       <h4 className="font-semibold text-lg text-gray-900 mb-3">
                         {t("tourDetail.highlights")}
                       </h4>
-                      {/* ... (no text changes needed here) */}
+                      <ul className="grid gap-3">
+                        {tour.highlights.map((highlight, index) => (
+                          <li key={index} className="flex items-start">
+                            <Star className="w-5 h-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
+                            <span className="text-gray-700">{highlight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                      <p className="text-gray-600 text-center">
+                        Tour highlights will be updated soon. Contact us for
+                        more details about this experience.
+                      </p>
                     </div>
                   )}
                 </TabsContent>
 
+                {/* ITINERARY TAB */}
                 <TabsContent value="itinerary" className="mt-6">
-                  {tour.itinerary?.length > 0 ? (
+                  {tour.itinerary && tour.itinerary.length > 0 ? (
                     <div className="space-y-6">
                       {tour.itinerary.map((day) => (
                         <div key={day.day} className="flex gap-4">
@@ -812,35 +915,160 @@ const TourDetailView: React.FC = () => {
                             <div className="w-12 h-12 bg-blue-100 text-blue-700 font-bold rounded-full flex items-center justify-center">
                               {t("tourDetail.day")} {day.day}
                             </div>
-                            <div className="w-px h-full bg-gray-200 mt-2"></div>
+                            {day.day < tour.itinerary.length && (
+                              <div className="w-px h-full bg-gray-200 mt-2"></div>
+                            )}
                           </div>
-                          {/* ... */}
+                          <div className="flex-1 pb-6">
+                            <h5 className="font-semibold text-lg text-gray-900 mb-2">
+                              {day.title}
+                            </h5>
+                            <p className="text-gray-700 leading-relaxed">
+                              {day.description}
+                            </p>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-gray-600">
-                      {t("tourDetail.itineraryNotAvailable")}
-                    </p>
+                    <div className="text-center py-12">
+                      <CalendarDays className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h5 className="text-lg font-medium text-gray-600 mb-2">
+                        Detailed Itinerary Coming Soon
+                      </h5>
+                      <p className="text-gray-500 max-w-md mx-auto">
+                        We're preparing a detailed day-by-day itinerary for this{" "}
+                        {tour.duration}-day experience. Please contact us for
+                        more information about the planned activities.
+                      </p>
+                      <div className="mt-6 p-4 bg-blue-50 rounded-lg inline-block">
+                        <p className="text-blue-800">
+                          <strong>Duration:</strong> {tour.duration} days
+                          <br />
+                          <strong>Location:</strong> {tour.location}
+                          <br />
+                          <strong>Group Size:</strong> Up to {tour.maxGroupSize}{" "}
+                          people
+                        </p>
+                      </div>
+                    </div>
                   )}
                 </TabsContent>
 
-                <TabsContent
-                  value="details"
-                  className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-8"
-                >
-                  <div>
-                    <h4 className="font-semibold text-lg text-green-700 mb-3">
-                      {t("tourDetail.inclusions")}
-                    </h4>
-                    {/* ... */}
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-lg text-red-700 mb-3">
-                      {t("tourDetail.exclusions")}
-                    </h4>
-                    {/* ... */}
-                  </div>
+                {/* DETAILS TAB */}
+                <TabsContent value="details" className="mt-6">
+                  {(tour.inclusions && tour.inclusions.length > 0) ||
+                  (tour.exclusions && tour.exclusions.length > 0) ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Inclusions */}
+                      <div>
+                        <h4 className="font-semibold text-lg text-green-700 mb-3">
+                          {t("tourDetail.inclusions")}
+                        </h4>
+                        {tour.inclusions && tour.inclusions.length > 0 ? (
+                          <ul className="space-y-2">
+                            {tour.inclusions.map((inclusion, index) => (
+                              <li key={index} className="flex items-start">
+                                <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">
+                                  {inclusion}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-gray-500 italic">
+                            Details will be provided upon booking confirmation.
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Exclusions */}
+                      <div>
+                        <h4 className="font-semibold text-lg text-red-700 mb-3">
+                          {t("tourDetail.exclusions")}
+                        </h4>
+                        {tour.exclusions && tour.exclusions.length > 0 ? (
+                          <ul className="space-y-2">
+                            {tour.exclusions.map((exclusion, index) => (
+                              <li key={index} className="flex items-start">
+                                <XCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                                <span className="text-gray-700">
+                                  {exclusion}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          <p className="text-gray-500 italic">
+                            Exclusion details will be clarified during booking.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <ClipboardList className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                      <h5 className="text-lg font-medium text-gray-600 mb-2">
+                        Package Details Coming Soon
+                      </h5>
+                      <p className="text-gray-500 max-w-md mx-auto mb-6">
+                        We're finalizing the inclusions and exclusions for this
+                        tour package. Contact us directly for the most
+                        up-to-date information.
+                      </p>
+
+                      {/* Show available tour info */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
+                        <div className="p-4 bg-blue-50 rounded-lg">
+                          <h6 className="font-medium text-blue-900 mb-2">
+                            Tour Information
+                          </h6>
+                          <div className="text-sm text-blue-800 space-y-1">
+                            <p>
+                              <strong>Duration:</strong> {tour.duration} days
+                            </p>
+                            <p>
+                              <strong>Max Group:</strong> {tour.maxGroupSize}{" "}
+                              people
+                            </p>
+                            <p>
+                              <strong>Difficulty:</strong> {tour.difficulty}
+                            </p>
+                            <p>
+                              <strong>Location:</strong> {tour.location}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-green-50 rounded-lg">
+                          <h6 className="font-medium text-green-900 mb-2">
+                            Pricing
+                          </h6>
+                          <div className="text-sm text-green-800 space-y-1">
+                            {tour.discountedPrice ? (
+                              <>
+                                <p className="line-through text-gray-500">
+                                  {formatPrice(tour.price, tour.currency)}
+                                </p>
+                                <p className="font-bold text-lg">
+                                  {formatPrice(
+                                    tour.discountedPrice,
+                                    tour.currency
+                                  )}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="font-bold text-lg">
+                                {formatPrice(tour.price, tour.currency)}
+                              </p>
+                            )}
+                            <p>per person</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
               </Tabs>
             </div>

@@ -52,7 +52,6 @@ const DIFFICULTY_OPTIONS = ["easy", "moderate", "challenging", "extreme"];
 const TIME_SLOT_TYPES = [
   { value: "hourly", label: "Hourly Slots" },
   { value: "daily", label: "Daily Tours" },
-  { value: "custom", label: "Custom Schedule" }
 ];
 
 const DAYS_OF_WEEK = [

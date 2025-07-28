@@ -538,40 +538,55 @@ export default function HomePage() {
               >
                 {t('home.company.desc')}
               </motion.p>
-              <div className="space-y-6">
-                {[
-                  { icon: Users, title: "Expert Local Guides", desc: "Our passionate local guides share insider knowledge and hidden gems" },
-                  { icon: Star, title: "Premium Quality", desc: "Carefully selected accommodations and transportation for your comfort" },
-                  { icon: MapPin, title: "Unique Destinations", desc: "From popular hotspots to off-the-beaten-path adventures" }
-                ].map((item, index) => (
-                  <motion.div 
-                    key={index}
-                    className="flex items-start group"
-                    initial={{ x: -50, opacity: 0 }}
-                    whileInView={{ x: 0, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: 0.3 + index * 0.1 }}
-                    whileHover={{ x: 10 }}
-                  >
-                    <motion.div 
-                      className="glass-effect p-2 rounded-full mr-4"
-                      whileHover={{ scale: 1.2, rotate: 10 }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <item.icon className="h-6 w-6 text-blue-600" />
-                    </motion.div>
-                    <div>
-                      <motion.h3 
-                        className="font-semibold text-gray-900"
-                        whileHover={{ color: "#2563eb" }}
-                      >
-                        {item.title}
-                      </motion.h3>
-                      <p className="text-gray-600">{item.desc}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
+// Replace this section in your HomePage component:
+
+// In the Company Description section, replace the hardcoded array with:
+<div className="space-y-6">
+  {[
+    { 
+      icon: Users, 
+      title: t("home.features.expertGuides"), 
+      desc: t("home.features.expertGuidesDesc") 
+    },
+    { 
+      icon: Star, 
+      title: t("home.features.premiumQuality"), 
+      desc: t("home.features.premiumQualityDesc") 
+    },
+    { 
+      icon: MapPin, 
+      title: t("home.features.uniqueDestinations"), 
+      desc: t("home.features.uniqueDestinationsDesc") 
+    }
+  ].map((item, index) => (
+    <motion.div 
+      key={index}
+      className="flex items-start group"
+      initial={{ x: -50, opacity: 0 }}
+      whileInView={{ x: 0, opacity: 1 }}
+      viewport={{ once: true }}
+      transition={{ delay: 0.3 + index * 0.1 }}
+      whileHover={{ x: 10 }}
+    >
+      <motion.div 
+        className="glass-effect p-2 rounded-full mr-4"
+        whileHover={{ scale: 1.2, rotate: 10 }}
+        transition={{ type: "spring", stiffness: 300 }}
+      >
+        <item.icon className="h-6 w-6 text-blue-600" />
+      </motion.div>
+      <div>
+        <motion.h3 
+          className="font-semibold text-gray-900"
+          whileHover={{ color: "#2563eb" }}
+        >
+          {item.title}
+        </motion.h3>
+        <p className="text-gray-600">{item.desc}</p>
+      </div>
+    </motion.div>
+  ))}
+</div>
             </motion.div>
             <motion.div 
               className="relative"
