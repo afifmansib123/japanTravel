@@ -58,7 +58,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
             <div className="text-2xl font-bold text-blue-600">
-              Wanderlust Adventures
+              glowetsu
             </div>
           </Link>
 
@@ -134,7 +134,7 @@ export default function Navbar() {
                   {!isAdminPage && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link href="/orders">Order History</Link>
+                        <Link href="/orderhistory">Order History</Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                     </>

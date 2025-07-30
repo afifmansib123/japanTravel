@@ -68,17 +68,21 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full">
-        <Card>
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-bold">{t('auth.signup.title')}</CardTitle>
-            <p className="text-gray-600">{t('auth.signup.subtitle')}</p>
+        <Card className="shadow-xl border-0 backdrop-blur-sm bg-white/80 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
+          <CardHeader className="text-center space-y-2">
+            <CardTitle className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+              {t('auth.signup.title')}
+            </CardTitle>
+            <p className="text-gray-600 text-sm">{t('auth.signup.subtitle')}</p>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">{t('auth.signup.name')}</Label>
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                  {t('auth.signup.name')}
+                </Label>
                 <Input
                   id="name"
                   type="text"
@@ -86,11 +90,14 @@ export default function SignUpPage() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   placeholder={t('auth.signup.fullNamePlaceholder')}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent hover:border-emerald-300"
                 />
               </div>
 
-              <div>
-                <Label htmlFor="email">{t('auth.signin.email')}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  {t('auth.signin.email')}
+                </Label>
                 <Input
                   id="email"
                   type="email"
@@ -98,25 +105,34 @@ export default function SignUpPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   placeholder={t('auth.signup.emailPlaceholder')}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent hover:border-emerald-300"
                 />
               </div>
 
-              <div>
-                <Label htmlFor="role">{t('auth.signup.accountType')}</Label>
-                <RadioGroup value={role} onValueChange={(value) => setRole(value as 'user' | 'admin')}>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="user" id="user" />
-                    <Label htmlFor="user">{t('auth.signup.user')}</Label>
+              <div className="space-y-3">
+                <Label htmlFor="role" className="text-sm font-medium text-gray-700">
+                  {t('auth.signup.accountType')}
+                </Label>
+                <RadioGroup value={role} onValueChange={(value) => setRole(value as 'user' | 'admin')} className="space-y-3">
+                  <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all duration-200 cursor-pointer">
+                    <RadioGroupItem value="user" id="user" className="text-emerald-600" />
+                    <Label htmlFor="user" className="cursor-pointer font-medium text-gray-700">
+                      {t('auth.signup.user')}
+                    </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="admin" id="admin" />
-                    <Label htmlFor="admin">{t('auth.signup.admin')}</Label>
+                  <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-emerald-300 hover:bg-emerald-50/50 transition-all duration-200 cursor-pointer">
+                    <RadioGroupItem value="admin" id="admin" className="text-emerald-600" />
+                    <Label htmlFor="admin" className="cursor-pointer font-medium text-gray-700">
+                      {t('auth.signup.admin')}
+                    </Label>
                   </div>
                 </RadioGroup>
               </div>
               
-              <div>
-                <Label htmlFor="password">{t('auth.signin.password')}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  {t('auth.signin.password')}
+                </Label>
                 <Input
                   id="password"
                   type="password"
@@ -125,14 +141,19 @@ export default function SignUpPage() {
                   required
                   placeholder={t('auth.signup.passwordPlaceholder')}
                   minLength={8}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent hover:border-emerald-300"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  {t('auth.signup.passwordRequirements')}
-                </p>
+                <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-lg p-3 border border-emerald-100">
+                  <p className="text-xs text-emerald-700 font-medium">
+                    {t('auth.signup.passwordRequirements')}
+                  </p>
+                </div>
               </div>
 
-              <div>
-                <Label htmlFor="confirmPassword">{t('auth.signup.confirmPassword')}</Label>
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                  {t('auth.signup.confirmPassword')}
+                </Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -140,18 +161,33 @@ export default function SignUpPage() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   placeholder={t('auth.signup.confirmPasswordPlaceholder')}
+                  className="transition-all duration-200 focus:ring-2 focus:ring-emerald-500 focus:border-transparent hover:border-emerald-300"
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? t('auth.signup.creating') : t('auth.signup.button')}
+              <Button 
+                type="submit" 
+                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl mt-6" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    <span>{t('auth.signup.creating')}</span>
+                  </div>
+                ) : (
+                  t('auth.signup.button')
+                )}
               </Button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-8 text-center">
               <p className="text-sm text-gray-600">
                 {t('auth.signup.hasAccount')}{' '}
-                <Link href="/auth/signin" className="text-blue-600 hover:underline">
+                <Link 
+                  href="/auth/signin" 
+                  className="text-emerald-600 hover:text-emerald-700 font-medium transition-colors duration-200 hover:underline decoration-2 underline-offset-2"
+                >
                   {t('nav.signin')}
                 </Link>
               </p>

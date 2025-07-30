@@ -43,7 +43,7 @@ export default function AboutPage() {
         </div>
         <div className="relative h-full flex items-center justify-center text-center text-white">
           <div className="max-w-4xl px-4">
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">About Wanderlust Adventures</h1>
+            <h1 className="text-5xl md:text-6xl font-bold mb-6">About glowetsu</h1>
             <p className="text-xl md:text-2xl">
               Creating unforgettable memories through authentic travel experiences since 2008
             </p>
@@ -77,7 +77,7 @@ export default function AboutPage() {
               <h2 className="text-4xl font-bold text-gray-900 mb-6">Our Story</h2>
               <div className="space-y-4 text-gray-600">
                 <p>
-                  Founded in 2008 by a group of passionate travelers, Wanderlust Adventures was born 
+                  Founded in 2008 by a group of passionate travelers,glowetsu was born 
                   from a simple belief: travel should transform lives, not just provide vacations.
                 </p>
                 <p>

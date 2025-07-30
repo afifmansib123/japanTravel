@@ -538,9 +538,6 @@ export default function HomePage() {
               >
                 {t('home.company.desc')}
               </motion.p>
-// Replace this section in your HomePage component:
-
-// In the Company Description section, replace the hardcoded array with:
 <div className="space-y-6">
   {[
     { 

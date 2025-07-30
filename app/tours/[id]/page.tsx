@@ -22,6 +22,8 @@ import {
   Utensils,
   Flag,
   X,
+  Heart,
+  Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -29,7 +31,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
-import { useLanguage } from "@/contexts/LanguageContext"; // --- IMPORT useLanguage ---
+import { useLanguage } from "@/contexts/LanguageContext";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
@@ -75,6 +77,7 @@ interface Tour {
   createdAt: string;
   updatedAt: string;
 }
+
 interface BookingSelection {
   date: string;
   timeSlotIndex: number;
@@ -88,13 +91,14 @@ interface TimeSlotModalProps {
   onClose: () => void;
   onConfirm: (selections: BookingSelection[]) => void;
 }
+
 interface ImageLightboxProps {
   images: string[];
   startIndex: number;
   onClose: () => void;
 }
 
-// ImageLightbox component remains the same...
+// ImageLightbox component with enhanced styling
 const ImageLightbox: React.FC<ImageLightboxProps> = ({
   images,
   startIndex,
@@ -127,44 +131,44 @@ const ImageLightbox: React.FC<ImageLightboxProps> = ({
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center">
+    <div className="fixed inset-0 bg-black/95 backdrop-blur-sm z-50 flex items-center justify-center animate-in fade-in-0 duration-300">
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
+        className="absolute top-6 right-6 text-white hover:text-gray-300 z-10 p-2 rounded-full bg-black/50 hover:bg-black/70 transition-all"
       >
-        <X className="w-8 h-8" />
+        <X className="w-6 h-6" />
       </button>
 
       {images.length > 1 && (
         <>
           <button
             onClick={goToPrevious}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10"
+            className="absolute left-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-all"
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
           <button
             onClick={goToNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10"
+            className="absolute right-6 top-1/2 -translate-y-1/2 text-white hover:text-gray-300 z-10 p-3 rounded-full bg-black/50 hover:bg-black/70 transition-all"
           >
             <ChevronRight className="w-8 h-8" />
           </button>
         </>
       )}
 
-      <div className="relative max-w-[90vw] max-h-[90vh]">
+      <div className="relative max-w-[90vw] max-h-[90vh] animate-in zoom-in-95 duration-300">
         <Image
           src={images[currentIndex]}
           alt={`Image ${currentIndex + 1} of ${images.length}`}
           width={1200}
           height={800}
-          className="max-w-full max-h-full object-contain"
+          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
           priority
         />
       </div>
 
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white bg-black bg-opacity-50 px-3 py-1 rounded">
-        {currentIndex + 1} / {images.length}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white bg-black/70 backdrop-blur-sm px-4 py-2 rounded-full">
+        <span className="font-medium">{currentIndex + 1} / {images.length}</span>
       </div>
     </div>
   );
@@ -188,7 +192,7 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
   const getAvailableDates = () => {
     const today = new Date();
     const maxDate = new Date();
-    maxDate.setDate(today.getDate() + 90); // 3 months ahead
+    maxDate.setDate(today.getDate() + 90);
 
     const availableDates: Date[] = [];
 
@@ -242,10 +246,10 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
     if (!selectedDate) return;
 
     const dateString = selectedDate.toISOString().split("T")[0];
-    const currentPrice =
-      tour.discountedPrice && tour.discountedPrice < tour.price
-        ? tour.discountedPrice
-        : tour.price;
+    // Use discounted price if available, otherwise use regular price
+    const currentPrice = tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price
+      ? tour.discountedPrice
+      : tour.price;
 
     const existingIndex = selections.findIndex(
       (s) => s.date === dateString && s.timeSlotIndex === timeSlotIndex
@@ -272,10 +276,9 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
 
   const updateQuantity = (index: number, change: number) => {
     const updated = [...selections];
-    const currentPrice =
-      tour.discountedPrice && tour.discountedPrice < tour.price
-        ? tour.discountedPrice
-        : tour.price;
+    const currentPrice = tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price
+      ? tour.discountedPrice
+      : tour.price;
 
     updated[index].quantity = Math.max(0, updated[index].quantity + change);
     updated[index].totalPrice = updated[index].quantity * currentPrice;
@@ -298,17 +301,21 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
     }).format(price);
   };
 
+  const currentPrice = tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price
+    ? tour.discountedPrice
+    : tour.price;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Select Date & Time</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">Select Date & Time</DialogTitle>
         </DialogHeader>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Calendar */}
-          <div>
-            <h3 className="font-semibold mb-4">Choose Date</h3>
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Choose Date</h3>
             <Calendar
               mode="single"
               selected={selectedDate}
@@ -323,85 +330,81 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
                   date > new Date(Date.now() + 90 * 24 * 60 * 60 * 1000)
                 );
               }}
-              className="rounded-md border"
+              className="rounded-lg border shadow-sm bg-white"
             />
           </div>
 
           {/* Time Slots */}
-          {/* Time Slots */}
-          <div>
-            <h3 className="font-semibold mb-4">Available Time Slots</h3>
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg">Available Time Slots</h3>
             {selectedDate ? (
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-96 overflow-y-auto">
                 {loadingAvailability ? (
-                  <p className="text-gray-500">Checking availability...</p>
+                  <div className="text-center py-8">
+                    <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-2"></div>
+                    <p className="text-gray-500">Checking availability...</p>
+                  </div>
                 ) : (
                   tour.timeSlots
                     .filter((slot) => slot.isActive)
                     .map((timeSlot, index) => {
                       const bookedQuantity = availabilityData[index] || 0;
-                      const isFullyBooked =
-                        bookedQuantity >= timeSlot.maxCapacity;
-                      const currentPrice =
-                        tour.discountedPrice &&
-                        tour.discountedPrice < tour.price
-                          ? tour.discountedPrice
-                          : tour.price;
+                      const isFullyBooked = bookedQuantity >= timeSlot.maxCapacity;
 
                       return (
                         <div
                           key={index}
-                          className={`p-3 border rounded-lg ${
+                          className={`p-4 border-2 rounded-xl transition-all ${
                             isFullyBooked
-                              ? "bg-gray-100 opacity-50"
-                              : "hover:bg-gray-50"
+                              ? "bg-gray-50 border-gray-200 opacity-60"
+                              : "hover:bg-blue-50 border-gray-200 hover:border-blue-300"
                           }`}
                         >
                           <div className="flex justify-between items-center">
-                            <div>
-                              <div className="font-medium">
+                            <div className="flex-1">
+                              <div className="font-semibold text-lg mb-1">
                                 {formatTimeSlot(timeSlot)}
                               </div>
-                              <div className="text-sm text-gray-600">
+                              <div className="mb-2">
                                 {isFullyBooked ? (
-                                  <span className="text-red-600 font-medium">
+                                  <Badge variant="destructive" className="text-xs">
                                     Fully Booked
-                                  </span>
+                                  </Badge>
                                 ) : (
-                                  <span className="text-green-600 font-medium">
+                                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
                                     Available
-                                  </span>
+                                  </Badge>
                                 )}
                               </div>
-                              <div className="text-sm font-medium">
-                                {tour.discountedPrice &&
-                                tour.discountedPrice < tour.price ? (
+                              <div className="flex items-center gap-3">
+                                {tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price ? (
                                   <div className="flex items-center gap-2">
-                                    <span className="text-gray-500 line-through text-xs">
+                                    <span className="text-gray-500 line-through text-sm">
                                       {formatPrice(tour.price)}
                                     </span>
-                                    <span className="text-red-600 font-bold">
+                                    <span className="text-red-600 font-bold text-lg">
                                       {formatPrice(tour.discountedPrice)}
                                     </span>
+                                    <Badge variant="destructive" className="text-xs">
+                                      Save {formatPrice(tour.price - tour.discountedPrice)}
+                                    </Badge>
                                   </div>
                                 ) : (
-                                  <span className="text-blue-600">
+                                  <span className="text-blue-600 font-bold text-lg">
                                     {formatPrice(tour.price)}
                                   </span>
                                 )}
-                                <span className="text-gray-500">
-                                  {" "}
-                                  per person
-                                </span>
+                                <span className="text-gray-500 text-sm">per person</span>
                               </div>
                             </div>
                             <Button
                               onClick={() => addSelection(index)}
-                              size="sm"
-                              className="ml-2"
+                              size="lg"
+                              className="ml-4 bg-blue-600 hover:bg-blue-700"
                               disabled={isFullyBooked}
                             >
-                              <Plus className="w-4 h-4" />
+                              <Plus className="w-4 h-4 mr-1" />
+                              Add
                             </Button>
                           </div>
                         </div>
@@ -410,44 +413,47 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
                 )}
               </div>
             ) : (
-              <p className="text-gray-500">Please select a date first</p>
+              <div className="text-center py-12 text-gray-500">
+                <CalendarIcon className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                <p>Please select a date first</p>
+              </div>
             )}
           </div>
         </div>
 
         {/* Selected Items */}
         {selections.length > 0 && (
-          <div className="mt-6 border-t pt-6">
-            <h3 className="font-semibold mb-4">Your Selections</h3>
-            <div className="space-y-3">
+          <div className="mt-8 border-t pt-6">
+            <h3 className="font-semibold text-lg mb-4">Your Selections</h3>
+            <div className="space-y-3 max-h-48 overflow-y-auto">
               {selections.map((selection, index) => (
                 <div
                   key={index}
-                  className="flex justify-between items-center p-3 bg-blue-50 rounded-lg"
+                  className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200"
                 >
-                  <div>
-                    <div className="font-medium">
-                      {new Date(selection.date).toLocaleDateString()} -
-                      {formatTimeSlot(tour.timeSlots[selection.timeSlotIndex])}
+                  <div className="flex-1">
+                    <div className="font-semibold">
+                      {new Date(selection.date).toLocaleDateString()} - {formatTimeSlot(tour.timeSlots[selection.timeSlotIndex])}
                     </div>
-                    <div className="text-sm text-gray-600">
-                      {selection.quantity} × {formatPrice(tour.price)} ={" "}
-                      {formatPrice(selection.totalPrice)}
+                    <div className="text-sm text-gray-600 mt-1">
+                      {selection.quantity} × {formatPrice(currentPrice)} = {formatPrice(selection.totalPrice)}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => updateQuantity(index, -1)}
+                      className="h-8 w-8 p-0"
                     >
                       <Minus className="w-4 h-4" />
                     </Button>
-                    <span className="font-medium">{selection.quantity}</span>
+                    <span className="font-semibold text-lg w-8 text-center">{selection.quantity}</span>
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => updateQuantity(index, 1)}
+                      className="h-8 w-8 p-0"
                     >
                       <Plus className="w-4 h-4" />
                     </Button>
@@ -455,25 +461,26 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
                 </div>
               ))}
             </div>
-            <div className="mt-4 p-3 bg-gray-100 rounded-lg">
-              <div className="flex justify-between items-center font-bold text-lg">
-                <span>Total: {formatPrice(getTotalPrice())}</span>
+            <div className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border border-green-200">
+              <div className="flex justify-between items-center">
+                <span className="text-lg font-semibold text-gray-900">Total Amount:</span>
+                <span className="text-2xl font-bold text-green-600">{formatPrice(getTotalPrice())}</span>
               </div>
             </div>
           </div>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+        <DialogFooter className="gap-3">
+          <Button variant="outline" onClick={onClose} size="lg">
             Cancel
           </Button>
           <Button
             onClick={() => onConfirm(selections)}
             disabled={selections.length === 0}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            size="lg"
           >
-            Add to Cart ({selections.length}{" "}
-            {selections.length === 1 ? "booking" : "bookings"})
+            Add to Cart ({selections.length} {selections.length === 1 ? "booking" : "bookings"})
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -481,19 +488,20 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
   );
 };
 
-// --- MAIN TOUR DETAIL PAGE COMPONENT (UPDATED FOR LANGUAGE) ---
+// Main Tour Detail Page Component
 const TourDetailView: React.FC = () => {
   const params = useParams();
   const router = useRouter();
   const tourId = params.id as string;
   const { addItem } = useCart();
-  const { t, locale } = useLanguage(); // --- USE THE LANGUAGE HOOK ---
+  const { t, locale } = useLanguage();
 
   const [tour, setTour] = useState<Tour | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxStartIndex, setLightboxStartIndex] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
 
   const [showTimeSlotModal, setShowTimeSlotModal] = useState(false);
   const { user } = useAuth();
@@ -545,18 +553,17 @@ const TourDetailView: React.FC = () => {
   const handleTimeSlotConfirm = (selections: BookingSelection[]) => {
     if (!tour) return;
 
-    const currentPrice =
-      tour.discountedPrice && tour.discountedPrice < tour.price
-        ? tour.discountedPrice
-        : tour.price;
+    const currentPrice = tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price
+      ? tour.discountedPrice
+      : tour.price;
 
     selections.forEach((selection) => {
       const timeSlot = tour.timeSlots[selection.timeSlotIndex];
       const bookingDetails = {
         id: `${tour._id}-${selection.date}-${selection.timeSlotIndex}`,
         name: `${tour.name} - ${selection.date} (${timeSlot.startTime}-${timeSlot.endTime})`,
-        price: currentPrice, // Use discounted price if available
-        originalPrice: tour.price, // Store original price for reference
+        price: currentPrice,
+        originalPrice: tour.price,
         discountedPrice: tour.discountedPrice || null,
         quantity: selection.quantity,
         image: tour.images[0],
@@ -574,7 +581,6 @@ const TourDetailView: React.FC = () => {
   };
 
   const formatPrice = (price: number, currency: string) => {
-    // Use locale from context for accurate currency formatting
     const priceLocale =
       locale === "zh" ? "zh-CN" : locale === "ja" ? "ja-JP" : "en-US";
     return new Intl.NumberFormat(priceLocale, {
@@ -584,50 +590,107 @@ const TourDetailView: React.FC = () => {
   };
 
   const getDifficultyClass = (difficulty: string) => {
-    // ... (no changes needed)
+    switch (difficulty.toLowerCase()) {
+      case 'easy':
+        return 'bg-green-100 text-green-800 border-green-200';
+      case 'moderate':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'challenging':
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      case 'extreme':
+        return 'bg-red-100 text-red-800 border-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
   };
 
-  if (loading)
+  const calculateSavings = () => {
+    if (tour?.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price) {
+      const savings = tour.price - tour.discountedPrice;
+      const percentage = Math.round((savings / tour.price) * 100);
+      return { amount: savings, percentage };
+    }
+    return null;
+  };
+
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>{t("tourDetail.loading")}</p>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-7xl mx-auto px-4 py-12">
+          <div className="animate-pulse space-y-8">
+            <div className="h-8 bg-gray-200 rounded w-32"></div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2 space-y-8">
+                <div className="bg-gray-200 rounded-xl h-96"></div>
+                <div className="bg-gray-200 rounded-xl h-64"></div>
+              </div>
+              <div className="bg-gray-200 rounded-xl h-80"></div>
+            </div>
+          </div>
+        </div>
       </div>
     );
-  if (error)
+  }
+
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-500">
-        <p>
-          {t("tourDetail.error")}: {error}
-        </p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-pink-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <X className="w-8 h-8 text-red-600" />
+          </div>
+          <h3 className="text-lg font-semibold text-red-600 mb-2">{t("tourDetail.error")}</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <Button onClick={() => router.push("/tours")} variant="outline">
+            {t("tourDetail.back")}
+          </Button>
+        </div>
       </div>
     );
-  if (!tour)
+  }
+
+  if (!tour) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p>{t("tourDetail.notFound")}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <MapPin className="w-8 h-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-600 mb-2">{t("tourDetail.notFound")}</h3>
+          <p className="text-gray-500 mb-4">The tour you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => router.push("/tours")} variant="outline">
+            Browse All Tours
+          </Button>
+        </div>
       </div>
     );
+  }
+
+  const savings = calculateSavings();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow-sm sticky top-0 z-40">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+      {/* Enhanced Header */}
+      <div className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-40 border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => router.push("/tours")}
-            className="inline-flex items-center text-gray-600 hover:text-gray-800"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> {t("tourDetail.back")}
-          </Button>
+          <div className="flex items-center justify-between">
+            <Button
+              variant="ghost"
+              onClick={() => router.push("/tours")}
+              className="inline-flex items-center text-gray-600 hover:text-gray-800 hover:bg-gray-100 transition-all"
+            >
+              <ArrowLeft className="w-5 h-5 mr-2" /> {t("tourDetail.back")}
+            </Button>
+            
+          </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* Image Gallery */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              {/* Main Image Display */}
+            {/* Enhanced Image Gallery */}
+            <div className="bg-white rounded-2xl shadow-lg overflow-hidden animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
               <div className="relative h-[350px] sm:h-[450px] md:h-[550px] w-full group">
                 {tour.images && tour.images.length > 0 ? (
                   <>
@@ -641,22 +704,21 @@ const TourDetailView: React.FC = () => {
                         layout="fill"
                         objectFit="cover"
                         priority={true}
-                        className="group-hover:scale-105 transition-transform duration-300"
+                        className="group-hover:scale-105 transition-transform duration-500"
                       />
                     </button>
-                    {/* Navigation Arrows on Main Image */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
+                    
                     {tour.images.length > 1 && (
                       <>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setLightboxStartIndex(
-                              (prev) =>
-                                (prev - 1 + tour.images.length) %
-                                tour.images.length
+                              (prev) => (prev - 1 + tour.images.length) % tour.images.length
                             );
                           }}
-                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-60 text-white p-2 rounded-full transition-opacity z-10"
+                          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full transition-all duration-200 hover:scale-110 shadow-lg"
                         >
                           <ChevronLeft className="w-5 h-5" />
                         </button>
@@ -667,7 +729,7 @@ const TourDetailView: React.FC = () => {
                               (prev) => (prev + 1) % tour.images.length
                             );
                           }}
-                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-black bg-opacity-40 hover:bg-opacity-60 text-white p-2 rounded-full transition-opacity z-10"
+                          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-3 rounded-full transition-all duration-200 hover:scale-110 shadow-lg"
                         >
                           <ChevronRight className="w-5 h-5" />
                         </button>
@@ -675,32 +737,34 @@ const TourDetailView: React.FC = () => {
                     )}
                   </>
                 ) : (
-                  <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                    {/* Placeholder for when there are no images */}
-                    <p className="text-gray-500">No Image Available</p>
+                  <div className="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
+                    <div className="text-center">
+                      <Mountain className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500 font-medium">No Image Available</p>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Thumbnail Gallery */}
+              {/* Enhanced Thumbnail Gallery */}
               {tour.images && tour.images.length > 1 && (
-                <div className="p-4">
-                  <div className="flex space-x-2 overflow-x-auto pb-2">
+                <div className="p-6">
+                  <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
                     {tour.images.map((url, index) => (
                       <button
                         key={index}
                         onClick={() => setLightboxStartIndex(index)}
-                        className={`flex-shrink-0 w-24 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                        className={`flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition-all duration-200 ${
                           index === lightboxStartIndex
-                            ? "border-blue-500 scale-105"
-                            : "border-transparent hover:border-gray-400"
+                            ? "border-blue-500 scale-105 shadow-lg"
+                            : "border-transparent hover:border-gray-300 hover:scale-105"
                         }`}
                       >
                         <Image
                           src={url}
                           alt={`Thumbnail ${index + 1}`}
-                          width={96}
-                          height={80}
+                          width={80}
+                          height={64}
                           className="w-full h-full object-cover"
                         />
                       </button>
@@ -709,361 +773,387 @@ const TourDetailView: React.FC = () => {
                 </div>
               )}
             </div>
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <Badge className="mb-2">{tour.category.name}</Badge>
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">
+
+            {/* Enhanced Tour Details */}
+            <div className="bg-white rounded-2xl shadow-lg p-8 animate-in fade-in-0 slide-in-from-bottom-4 duration-700 delay-150">
+              <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    <Badge className="bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200">
+                      {tour.category.name}
+                    </Badge>
+                    {tour.isFeatured && (
+                      <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">
+                        ⭐ Featured
+                      </Badge>
+                    )}
+                  </div>
+                  <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                     {tour.name}
                   </h1>
-                  <div className="flex items-center text-gray-600 mb-2">
-                    <MapPin className="w-5 h-5 mr-2" />
-                    <span>{tour.location}</span>
+                  <div className="flex items-center text-gray-600 mb-4">
+                    <MapPin className="w-5 h-5 mr-2 text-blue-500" />
+                    <span className="text-lg font-medium">{tour.location}</span>
                   </div>
                 </div>
 
-                {/* UPDATED PRICE DISPLAY */}
-                <div className="text-right">
-                  {tour.discountedPrice && tour.discountedPrice < tour.price ? (
-                    <div>
-                      <div className="text-lg text-gray-500 line-through">
-                        {formatPrice(tour.price, tour.currency)}
+                {/* Enhanced Price Display */}
+                <div className="text-center lg:text-right bg-gradient-to-br from-blue-50 to-indigo-50 p-4 lg:p-6 rounded-2xl border border-blue-100 lg:flex-shrink-0">
+                  {tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price ? (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="text-lg text-gray-500 line-through">
+                          {formatPrice(tour.price, tour.currency)}
+                        </span>
+                        <Badge variant="destructive" className="text-xs">
+                          -{savings?.percentage}%
+                        </Badge>
                       </div>
                       <div className="text-3xl font-bold text-red-600">
                         {formatPrice(tour.discountedPrice, tour.currency)}
                       </div>
-                      <div className="text-sm text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full mt-1">
-                        Save{" "}
-                        {formatPrice(
-                          tour.price - tour.discountedPrice,
-                          tour.currency
-                        )}
+                      <div className="text-sm text-green-600 font-semibold bg-green-100 px-3 py-1 rounded-full">
+                        Save {formatPrice(savings?.amount || 0, tour.currency)}
                       </div>
                     </div>
                   ) : (
-                    <div className="text-3xl font-bold text-blue-600">
+                    <div className="text-4xl font-bold text-blue-600">
                       {formatPrice(tour.price, tour.currency)}
                     </div>
                   )}
-                  <div className="text-sm text-gray-600 mt-1">per person</div>
+                  <div className="text-sm text-gray-600 mt-2 font-medium">per person</div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <CalendarDays className="w-6 h-6 text-gray-600 mx-auto mb-2" />
-                  <div className="text-2xl font-semibold text-gray-900">
+              {/* Enhanced Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200">
+                  <CalendarDays className="w-8 h-8 text-blue-600 mx-auto mb-3" />
+                  <div className="text-3xl font-bold text-gray-900 mb-1">
                     {tour.duration}
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {t("tourDetail.days")}
+                  <div className="text-sm text-gray-600 font-medium">
+                    {tour.duration === 1 ? t("tourDetail.day") : t("tourDetail.days")}
                   </div>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <Users className="w-6 h-6 text-gray-600 mx-auto mb-2" />
-                  <div className="text-2xl font-semibold text-gray-900">
+                <div className="text-center p-6 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border border-emerald-200">
+                  <Users className="w-8 h-8 text-emerald-600 mx-auto mb-3" />
+                  <div className="text-3xl font-bold text-gray-900 mb-1">
                     {tour.maxGroupSize}
                   </div>
-                  <div className="text-sm text-gray-600">
+                  <div className="text-sm text-gray-600 font-medium">
                     {t("tourDetail.maxGroup")}
                   </div>
                 </div>
-                <div className="text-center p-4 bg-gray-50 rounded-lg">
-                  <Mountain className="w-6 h-6 text-gray-600 mx-auto mb-2" />
-                  <div
-                    className={`px-3 py-1 rounded-full text-lg font-semibold capitalize ${getDifficultyClass(
-                      tour.difficulty
-                    )}`}
-                  >
+                <div className="text-center p-6 bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border border-orange-200">
+                  <Mountain className="w-8 h-8 text-orange-600 mx-auto mb-3" />
+                  <div className={`px-4 py-2 rounded-full text-sm font-bold capitalize ${getDifficultyClass(tour.difficulty)} mx-auto inline-block`}>
                     {tour.difficulty}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
+                  <div className="text-sm text-gray-600 font-medium mt-2">
                     {t("tourDetail.difficulty")}
                   </div>
                 </div>
               </div>
 
+              {/* Enhanced Tabs */}
               <Tabs defaultValue="schedule" className="w-full">
-                <TabsList className="grid w-full grid-cols-4">
-                  <TabsTrigger value="schedule">Schedule</TabsTrigger>
-                  <TabsTrigger value="description">
+                <TabsList className="grid w-full grid-cols-4 bg-gray-100 p-1 rounded-xl">
+                  <TabsTrigger value="schedule" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                    Schedule
+                  </TabsTrigger>
+                  <TabsTrigger value="description" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
                     {t("tourDetail.about")}
                   </TabsTrigger>
-                  <TabsTrigger value="itinerary">
+                  <TabsTrigger value="itinerary" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
                     {t("tourDetail.itinerary")}
                   </TabsTrigger>
-                  <TabsTrigger value="details">
+                  <TabsTrigger value="details" className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm">
                     {t("tourDetail.whatsIncluded")}
                   </TabsTrigger>
                 </TabsList>
 
-                {/* SCHEDULE TAB */}
-                <TabsContent value="schedule" className="mt-6">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-3">
-                    Schedule & Availability
-                  </h4>
+                {/* Schedule Tab */}
+                <TabsContent value="schedule" className="mt-8">
+                  <div className="space-y-6">
+                    <h4 className="font-bold text-2xl text-gray-900">Schedule & Availability</h4>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="p-4 border rounded-lg">
-                      <h5 className="font-medium text-gray-900 mb-3 flex items-center">
-                        <CalendarIcon className="w-5 h-5 mr-2" />
-                        Operating Days
-                      </h5>
-                      <div className="flex flex-wrap gap-2">
-                        {tour.operatingDays.map((day) => (
-                          <Badge
-                            key={day}
-                            variant="secondary"
-                            className="capitalize"
-                          >
-                            {day}
-                          </Badge>
-                        ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="p-6 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-colors">
+                        <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
+                          <CalendarIcon className="w-6 h-6 mr-3 text-blue-500" />
+                          Operating Days
+                        </h5>
+                        <div className="flex flex-wrap gap-2">
+                          {tour.operatingDays.map((day) => (
+                            <Badge
+                              key={day}
+                              variant="secondary"
+                              className="capitalize bg-blue-100 text-blue-800 border-blue-200 px-3 py-1"
+                            >
+                              {day}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="p-6 border-2 border-gray-200 rounded-xl hover:border-blue-300 transition-colors">
+                        <h5 className="font-semibold text-gray-900 mb-4 flex items-center">
+                          <Clock className="w-6 h-6 mr-3 text-emerald-500" />
+                          Available Times
+                        </h5>
+                        <div className="space-y-3">
+                          {tour.timeSlots
+                            .filter((slot) => slot.isActive)
+                            .map((timeSlot, index) => (
+                              <div
+                                key={index}
+                                className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                              >
+                                <span className="font-medium text-gray-900">
+                                  {timeSlot.startTime} - {timeSlot.endTime}
+                                </span>
+                                <span className="text-sm text-gray-600 bg-white px-2 py-1 rounded">
+                                  Max {timeSlot.maxCapacity}
+                                </span>
+                              </div>
+                            ))}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="p-4 border rounded-lg">
-                      <h5 className="font-medium text-gray-900 mb-3 flex items-center">
-                        <Clock className="w-5 h-5 mr-2" />
-                        Available Times
-                      </h5>
-                      <div className="space-y-2">
-                        {tour.timeSlots
-                          .filter((slot) => slot.isActive)
-                          .map((timeSlot, index) => (
-                            <div
-                              key={index}
-                              className="flex justify-between items-center p-2 bg-gray-50 rounded"
-                            >
-                              <span className="font-medium">
-                                {timeSlot.startTime} - {timeSlot.endTime}
-                              </span>
-                              <span className="text-sm text-gray-600">
-                                Max {timeSlot.maxCapacity} people
-                              </span>
+                    <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                          <span className="text-white text-sm font-bold">!</span>
+                        </div>
+                        <div>
+                          <h6 className="font-semibold text-blue-900 mb-2">Booking Policy</h6>
+                          <p className="text-sm text-blue-800 leading-relaxed">
+                            Book at least <strong>{tour.advanceBookingDays} day(s)</strong> in advance. 
+                            Times shown are for <strong>{tour.timeSlotType}</strong> slots. 
+                            All bookings are subject to availability and weather conditions.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+
+                {/* Description Tab */}
+                <TabsContent value="description" className="mt-8">
+                  <div className="space-y-8">
+                    <h4 className="font-bold text-2xl text-gray-900">{t("tourDetail.about")}</h4>
+
+                    {tour.shortDescription && (
+                      <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border-l-4 border-blue-500">
+                        <h5 className="font-semibold text-blue-900 mb-3 flex items-center">
+                          <Star className="w-5 h-5 mr-2" />
+                          Quick Overview
+                        </h5>
+                        <p className="text-blue-800 leading-relaxed text-lg">{tour.shortDescription}</p>
+                      </div>
+                    )}
+
+                    <div className="prose prose-lg max-w-none">
+                      <p className="text-gray-700 leading-relaxed text-lg whitespace-pre-wrap">
+                        {tour.description || "No detailed description available for this tour."}
+                      </p>
+                    </div>
+
+                    {tour.highlights && tour.highlights.length > 0 && (
+                      <div className="space-y-4">
+                        <h5 className="font-bold text-xl text-gray-900">Tour Highlights</h5>
+                        <div className="grid gap-4">
+                          {tour.highlights.map((highlight, index) => (
+                            <div key={index} className="flex items-start p-4 bg-yellow-50 rounded-xl border border-yellow-200 hover:bg-yellow-100 transition-colors">
+                              <Star className="w-6 h-6 text-yellow-500 mr-4 mt-0.5 flex-shrink-0" />
+                              <span className="text-gray-800 leading-relaxed font-medium">{highlight}</span>
                             </div>
                           ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* Itinerary Tab */}
+                <TabsContent value="itinerary" className="mt-8">
+                  {tour.itinerary && tour.itinerary.length > 0 ? (
+                    <div className="space-y-8">
+                      <h4 className="font-bold text-2xl text-gray-900">{t("tourDetail.itinerary")}</h4>
+                      <div className="space-y-8">
+                        {tour.itinerary.map((day, index) => (
+                          <div key={day.day} className="flex gap-6 group">
+                            <div className="flex flex-col items-center">
+                              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold rounded-full flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                                <span className="text-sm">{t("tourDetail.day")} {day.day}</span>
+                              </div>
+                              {index < tour.itinerary.length - 1 && (
+                                <div className="w-0.5 h-16 bg-gradient-to-b from-blue-300 to-gray-200 mt-4"></div>
+                              )}
+                            </div>
+                            <div className="flex-1 pb-8">
+                              <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                                <h5 className="font-bold text-xl text-gray-900 mb-3">
+                                  {day.title}
+                                </h5>
+                                <p className="text-gray-700 leading-relaxed">
+                                  {day.description}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  </div>
-
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                    <p className="text-sm text-blue-800">
-                      <strong>Booking Policy:</strong> Book at least{" "}
-                      {tour.advanceBookingDays} day(s) in advance. Times shown
-                      are for {tour.timeSlotType} slots.
-                    </p>
-                  </div>
-                </TabsContent>
-
-                {/* DESCRIPTION TAB */}
-                <TabsContent value="description" className="mt-6">
-                  <h4 className="font-semibold text-lg text-gray-900 mb-3">
-                    {t("tourDetail.about")}
-                  </h4>
-
-                  {/* Main Description */}
-                  <div className="mb-6">
-                    <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                      {tour.description ||
-                        "No detailed description available for this tour."}
-                    </p>
-                  </div>
-
-                  {/* Short Description if available */}
-                  {tour.shortDescription && (
-                    <div className="mb-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                      <h5 className="font-medium text-blue-900 mb-2">
-                        Quick Overview
-                      </h5>
-                      <p className="text-blue-800">{tour.shortDescription}</p>
-                    </div>
-                  )}
-
-                  {/* Highlights Section - Only show if data exists */}
-                  {tour.highlights && tour.highlights.length > 0 ? (
-                    <div className="mt-6">
-                      <h4 className="font-semibold text-lg text-gray-900 mb-3">
-                        {t("tourDetail.highlights")}
-                      </h4>
-                      <ul className="grid gap-3">
-                        {tour.highlights.map((highlight, index) => (
-                          <li key={index} className="flex items-start">
-                            <Star className="w-5 h-5 text-yellow-500 mr-3 mt-0.5 flex-shrink-0" />
-                            <span className="text-gray-700">{highlight}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
                   ) : (
-                    <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                      <p className="text-gray-600 text-center">
-                        Tour highlights will be updated soon. Contact us for
-                        more details about this experience.
-                      </p>
-                    </div>
-                  )}
-                </TabsContent>
-
-                {/* ITINERARY TAB */}
-                <TabsContent value="itinerary" className="mt-6">
-                  {tour.itinerary && tour.itinerary.length > 0 ? (
-                    <div className="space-y-6">
-                      {tour.itinerary.map((day) => (
-                        <div key={day.day} className="flex gap-4">
-                          <div className="flex flex-col items-center">
-                            <div className="w-12 h-12 bg-blue-100 text-blue-700 font-bold rounded-full flex items-center justify-center">
-                              {t("tourDetail.day")} {day.day}
-                            </div>
-                            {day.day < tour.itinerary.length && (
-                              <div className="w-px h-full bg-gray-200 mt-2"></div>
-                            )}
+                    <div className="text-center py-16">
+                      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-12 max-w-lg mx-auto">
+                        <CalendarDays className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+                        <h5 className="text-xl font-semibold text-gray-600 mb-3">
+                          Detailed Itinerary Coming Soon
+                        </h5>
+                        <p className="text-gray-500 mb-6 leading-relaxed">
+                          We're preparing a detailed day-by-day itinerary for this{" "}
+                          {tour.duration}-day experience. Please contact us for more information.
+                        </p>
+                        <div className="grid grid-cols-2 gap-4 text-sm">
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="font-semibold text-gray-900">{tour.duration}</div>
+                            <div className="text-gray-600">Days</div>
                           </div>
-                          <div className="flex-1 pb-6">
-                            <h5 className="font-semibold text-lg text-gray-900 mb-2">
-                              {day.title}
-                            </h5>
-                            <p className="text-gray-700 leading-relaxed">
-                              {day.description}
-                            </p>
+                          <div className="bg-white p-3 rounded-lg border">
+                            <div className="font-semibold text-gray-900">{tour.maxGroupSize}</div>
+                            <div className="text-gray-600">Max Group</div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-12">
-                      <CalendarDays className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h5 className="text-lg font-medium text-gray-600 mb-2">
-                        Detailed Itinerary Coming Soon
-                      </h5>
-                      <p className="text-gray-500 max-w-md mx-auto">
-                        We're preparing a detailed day-by-day itinerary for this{" "}
-                        {tour.duration}-day experience. Please contact us for
-                        more information about the planned activities.
-                      </p>
-                      <div className="mt-6 p-4 bg-blue-50 rounded-lg inline-block">
-                        <p className="text-blue-800">
-                          <strong>Duration:</strong> {tour.duration} days
-                          <br />
-                          <strong>Location:</strong> {tour.location}
-                          <br />
-                          <strong>Group Size:</strong> Up to {tour.maxGroupSize}{" "}
-                          people
-                        </p>
                       </div>
                     </div>
                   )}
                 </TabsContent>
 
-                {/* DETAILS TAB */}
-                <TabsContent value="details" className="mt-6">
+                {/* Details Tab */}
+                <TabsContent value="details" className="mt-8">
                   {(tour.inclusions && tour.inclusions.length > 0) ||
                   (tour.exclusions && tour.exclusions.length > 0) ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {/* Inclusions */}
-                      <div>
-                        <h4 className="font-semibold text-lg text-green-700 mb-3">
-                          {t("tourDetail.inclusions")}
-                        </h4>
-                        {tour.inclusions && tour.inclusions.length > 0 ? (
-                          <ul className="space-y-2">
-                            {tour.inclusions.map((inclusion, index) => (
-                              <li key={index} className="flex items-start">
-                                <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                                <span className="text-gray-700">
-                                  {inclusion}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-gray-500 italic">
-                            Details will be provided upon booking confirmation.
-                          </p>
-                        )}
-                      </div>
+                    <div className="space-y-8">
+                      <h4 className="font-bold text-2xl text-gray-900">What's Included & Excluded</h4>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        {/* Inclusions */}
+                        <div className="space-y-4">
+                          <h5 className="font-bold text-xl text-green-700 flex items-center">
+                            <CheckCircle className="w-6 h-6 mr-2" />
+                            {t("tourDetail.inclusions")}
+                          </h5>
+                          {tour.inclusions && tour.inclusions.length > 0 ? (
+                            <div className="space-y-3">
+                              {tour.inclusions.map((inclusion, index) => (
+                                <div key={index} className="flex items-start p-4 bg-green-50 rounded-xl border border-green-200 hover:bg-green-100 transition-colors">
+                                  <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
+                                  <span className="text-gray-800 leading-relaxed">{inclusion}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 italic bg-gray-50 p-4 rounded-xl">
+                              Details will be provided upon booking confirmation.
+                            </p>
+                          )}
+                        </div>
 
-                      {/* Exclusions */}
-                      <div>
-                        <h4 className="font-semibold text-lg text-red-700 mb-3">
-                          {t("tourDetail.exclusions")}
-                        </h4>
-                        {tour.exclusions && tour.exclusions.length > 0 ? (
-                          <ul className="space-y-2">
-                            {tour.exclusions.map((exclusion, index) => (
-                              <li key={index} className="flex items-start">
-                                <XCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
-                                <span className="text-gray-700">
-                                  {exclusion}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-gray-500 italic">
-                            Exclusion details will be clarified during booking.
-                          </p>
-                        )}
+                        {/* Exclusions */}
+                        <div className="space-y-4">
+                          <h5 className="font-bold text-xl text-red-700 flex items-center">
+                            <XCircle className="w-6 h-6 mr-2" />
+                            {t("tourDetail.exclusions")}
+                          </h5>
+                          {tour.exclusions && tour.exclusions.length > 0 ? (
+                            <div className="space-y-3">
+                              {tour.exclusions.map((exclusion, index) => (
+                                <div key={index} className="flex items-start p-4 bg-red-50 rounded-xl border border-red-200 hover:bg-red-100 transition-colors">
+                                  <XCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                                  <span className="text-gray-800 leading-relaxed">{exclusion}</span>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-gray-500 italic bg-gray-50 p-4 rounded-xl">
+                              Exclusion details will be clarified during booking.
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center py-12">
-                      <ClipboardList className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                      <h5 className="text-lg font-medium text-gray-600 mb-2">
-                        Package Details Coming Soon
-                      </h5>
-                      <p className="text-gray-500 max-w-md mx-auto mb-6">
-                        We're finalizing the inclusions and exclusions for this
-                        tour package. Contact us directly for the most
-                        up-to-date information.
-                      </p>
+                    <div className="text-center py-16">
+                      <div className="bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl p-12 max-w-2xl mx-auto">
+                        <ClipboardList className="w-20 h-20 text-gray-300 mx-auto mb-6" />
+                        <h5 className="text-xl font-semibold text-gray-600 mb-3">
+                          Package Details Coming Soon
+                        </h5>
+                        <p className="text-gray-500 mb-8 leading-relaxed">
+                          We're finalizing the inclusions and exclusions for this tour package. 
+                          Contact us directly for the most up-to-date information.
+                        </p>
 
-                      {/* Show available tour info */}
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto">
-                        <div className="p-4 bg-blue-50 rounded-lg">
-                          <h6 className="font-medium text-blue-900 mb-2">
-                            Tour Information
-                          </h6>
-                          <div className="text-sm text-blue-800 space-y-1">
-                            <p>
-                              <strong>Duration:</strong> {tour.duration} days
-                            </p>
-                            <p>
-                              <strong>Max Group:</strong> {tour.maxGroupSize}{" "}
-                              people
-                            </p>
-                            <p>
-                              <strong>Difficulty:</strong> {tour.difficulty}
-                            </p>
-                            <p>
-                              <strong>Location:</strong> {tour.location}
-                            </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="p-6 bg-white rounded-xl border border-blue-200">
+                            <h6 className="font-semibold text-blue-900 mb-4">Tour Information</h6>
+                            <div className="space-y-2 text-sm text-blue-800">
+                              <div className="flex justify-between">
+                                <span>Duration:</span>
+                                <span className="font-medium">{tour.duration} days</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Max Group:</span>
+                                <span className="font-medium">{tour.maxGroupSize} people</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Difficulty:</span>
+                                <span className="font-medium capitalize">{tour.difficulty}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Location:</span>
+                                <span className="font-medium">{tour.location}</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="p-4 bg-green-50 rounded-lg">
-                          <h6 className="font-medium text-green-900 mb-2">
-                            Pricing
-                          </h6>
-                          <div className="text-sm text-green-800 space-y-1">
-                            {tour.discountedPrice ? (
-                              <>
-                                <p className="line-through text-gray-500">
-                                  {formatPrice(tour.price, tour.currency)}
-                                </p>
-                                <p className="font-bold text-lg">
-                                  {formatPrice(
-                                    tour.discountedPrice,
-                                    tour.currency
-                                  )}
-                                </p>
-                              </>
-                            ) : (
-                              <p className="font-bold text-lg">
-                                {formatPrice(tour.price, tour.currency)}
-                              </p>
-                            )}
-                            <p>per person</p>
+                          <div className="p-6 bg-white rounded-xl border border-green-200">
+                            <h6 className="font-semibold text-green-900 mb-4">Pricing</h6>
+                            <div className="space-y-2 text-sm text-green-800">
+                              {tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price ? (
+                                <>
+                                  <div className="flex justify-between">
+                                    <span>Original Price:</span>
+                                    <span className="line-through">{formatPrice(tour.price, tour.currency)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>Discounted Price:</span>
+                                    <span className="font-bold text-lg text-red-600">
+                                      {formatPrice(tour.discountedPrice, tour.currency)}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span>You Save:</span>
+                                    <span className="font-medium text-green-600">
+                                      {formatPrice(tour.price - tour.discountedPrice, tour.currency)}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <div className="flex justify-between">
+                                  <span>Price:</span>
+                                  <span className="font-bold text-lg">
+                                    {formatPrice(tour.price, tour.currency)}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="text-center pt-2 border-t border-green-200">
+                                <span className="text-xs text-gray-600">per person</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1074,32 +1164,77 @@ const TourDetailView: React.FC = () => {
             </div>
           </div>
 
+          {/* Enhanced Booking Sidebar */}
           <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6 sticky top-24">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                {t("tourDetail.ready")}
-              </h3>
-              <div className="space-y-3">
+            <div className="bg-white rounded-2xl shadow-lg p-8 sticky top-32 animate-in fade-in-0 slide-in-from-right-4 duration-700 delay-300">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">{t("tourDetail.ready")}</h3>
+                <p className="text-gray-600">Select your preferred date and time</p>
+              </div>
+
+              {/* Price Summary */}
+              <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200">
+                {tour.discountedPrice && tour.discountedPrice > 0 && tour.discountedPrice < tour.price ? (
+                  <div className="text-center">
+                    <div className="text-sm text-gray-500 line-through mb-1">
+                      {formatPrice(tour.price, tour.currency)}
+                    </div>
+                    <div className="text-2xl font-bold text-red-600 mb-2">
+                      {formatPrice(tour.discountedPrice, tour.currency)}
+                    </div>
+                    <Badge variant="destructive" className="text-xs">
+                      Save {savings?.percentage}% • {formatPrice(savings?.amount || 0, tour.currency)}
+                    </Badge>
+                  </div>
+                ) : (
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {formatPrice(tour.price, tour.currency)}
+                    </div>
+                  </div>
+                )}
+                <div className="text-center text-sm text-gray-600 mt-1">per person</div>
+              </div>
+
+              <div className="space-y-4">
                 <Button
                   onClick={handleAddToCart}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-200 hover:scale-105"
                   disabled={!user || user.role !== "user"}
+                  size="lg"
                 >
                   {!user
-                    ? "Login to Book"
+                    ? "Login to Book Tour"
                     : user.role !== "user"
                     ? "Customer Access Only"
                     : "Select Date & Time"}
                 </Button>
-                <Button variant="outline" className="w-full py-3">
+                
+                <Button 
+                  variant="outline" 
+                  className="w-full py-4 text-lg font-medium rounded-xl border-2 border-gray-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+                  size="lg"
+                >
                   <ClipboardList className="w-5 h-5 mr-2" />
                   {t("tourDetail.askQuestion")}
                 </Button>
               </div>
+
               <Separator className="my-6" />
-              <div className="text-center text-sm text-gray-600">
-                <p>{t("tourDetail.bookWithConfidence")}</p>
-                <p>{t("tourDetail.securePayments")}</p>
+              
+              <div className="text-center space-y-2">
+                <div className="flex items-center justify-center gap-2 text-sm text-green-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">{t("tourDetail.bookWithConfidence")}</span>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-sm text-blue-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">{t("tourDetail.securePayments")}</span>
+                </div>
+                <div className="flex items-center justify-center gap-2 text-sm text-purple-600">
+                  <CheckCircle className="w-4 h-4" />
+                  <span className="font-medium">Best Price Guarantee</span>
+                </div>
               </div>
             </div>
           </div>

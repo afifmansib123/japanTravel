@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="grid md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Wanderlust Adventures</h3>
+            <h3 className="text-xl font-bold mb-4">glowetsu</h3>
             <p className="text-gray-300 mb-4">
               Creating unforgettable travel experiences since 2008. 
               Your adventure starts here.
@@ -64,7 +64,7 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center">
           <p className="text-gray-400">
-            © 2024 Wanderlust Adventures. All rights reserved.
+            © 2024 glowetsu. All rights reserved.
           </p>
         </div>
       </div>

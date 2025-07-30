@@ -45,7 +45,7 @@ const translations = {
     "home.hero.explore": "Explore Tours",
     "home.featured.title": "Featured Tours",
     "home.featured.subtitle": "Discover our most popular destinations",
-    "home.company.title": "Why Choose Wanderlust Adventures?",
+    "home.company.title": "Why Choose glowetsu?",
     "home.company.desc":
       "With over 15 years of experience in creating unforgettable travel experiences, we specialize in crafting personalized tours that connect you with the heart and soul of each destination.",
     "home.cta.title": "Ready for Your Next Adventure?",
@@ -97,7 +97,7 @@ const translations = {
     "auth.signin.noAccount": "Don't have an account?",
     "auth.signin.demo": "Demo Accounts:",
     "auth.signup.title": "Create Account",
-    "auth.signup.subtitle": "Join Wanderlust Adventures",
+    "auth.signup.subtitle": "Join glowetsu",
     "auth.signup.name": "Full Name",
     "auth.signup.confirmPassword": "Confirm Password",
     "auth.signup.button": "Create Account",

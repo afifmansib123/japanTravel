@@ -140,7 +140,7 @@ export default function BookingSuccessPage() {
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild size="lg">
-            <Link href="/my-bookings">View My Bookings</Link>
+            <Link href="/orderhistory">View My Bookings</Link>
           </Button>
           <Button variant="outline" size="lg" asChild>
             <Link href="/tours">Book Another Tour</Link>
