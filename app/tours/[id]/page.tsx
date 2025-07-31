@@ -439,25 +439,6 @@ const TimeSlotSelectionModal: React.FC<TimeSlotModalProps> = ({
                       {selection.quantity} × {formatPrice(currentPrice)} = {formatPrice(selection.totalPrice)}
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => updateQuantity(index, -1)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </Button>
-                    <span className="font-semibold text-lg w-8 text-center">{selection.quantity}</span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => updateQuantity(index, 1)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
                 </div>
               ))}
             </div>
