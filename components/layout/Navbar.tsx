@@ -129,6 +129,31 @@ export default function Navbar() {
                       <DropdownMenuSeparator />
                     </>
                   )}
+
+                  {isAdminPage && (
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/calender">Calender View</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/orders">All Orders</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/categories">Categories</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/tours">Tours</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin/users">All Users</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
                   
                   {/* User-specific options - only show on public pages */}
                   {!isAdminPage && (
